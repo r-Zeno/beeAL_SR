@@ -252,8 +252,8 @@ pass_or = create_weight_update_model(
     post_neuron_var_refs=None,
     psm_var_refs=None,
     derived_params=None,
-    synapse_dynamics_code= "addToPost(ra_pre_ref);" # here confusing since in the og code ra_pre is used, but never reference from anywhere
-    # in the code, so here I create a reference to ra (that I assume is the variable referenced in the og model
+    synapse_dynamics_code= "addToPost(ra_pre_ref);" # here confusing since in old genn can reference the previous state of a var with "varname_pre", 
+    # so here I create a reference to ra (that I assume is the variable referenced in the og model
     # (i.e., the fraction of bound and activated receptors)). Also in genn5 changed from synapse_dynamics_code to pre_spike_syn_code
 )
 
@@ -772,4 +772,3 @@ for key, segments_list in vars_rec.items():
 
 for pop_var2 in vars_rec:
     np.save(os.path.join(folder, f"{pop_var2}_states.npy"), vars_rec[pop_var2])
-
