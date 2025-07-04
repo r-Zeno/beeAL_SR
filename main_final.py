@@ -161,7 +161,7 @@ adapt_lifi = pygenn.create_neuron_model(
 )
 
 ### Constucting Model
-model = GeNNModel("double", "beeAL") # in og not float, why? takes too long? could try w float
+model = GeNNModel("double", "beeAL")
 model.dt = dt
 
 ## adding neurons
@@ -600,7 +600,7 @@ np.save(os.path.join(folder,"_hill"),hill_exp)
 # function for "presenting" odors to ors
 def set_odor_simple(ors, slot, odor, con, hill):
     """
-    setting parameters of ors for the chosen odor (effectively "presenting"the odor to the ors).
+    setting parameters of ors for the chosen odor (effectively "presenting" the odor to the ors).
     Difference from the og function: it autonomously views and pushes the variables to the ors.
     ors: the population of ors (receptors)
     odor: 
@@ -638,7 +638,7 @@ def set_odor_simple(ors, slot, odor, con, hill):
 
 ## Protocol timings for presenting odors
 # selecting concentration and odor slot
-base= np.power(10,0.25)
+base = np.power(10,0.25)
 c = 12
 on = 1e-7*np.power(base,c)
 off = 0.0
