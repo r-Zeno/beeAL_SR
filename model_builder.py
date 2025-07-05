@@ -7,18 +7,19 @@ try:
     import GPUtil
 except: print("GPUtil not installed, you will have no info on gpu status, sim will start anyway.")
 
-class model_builder:
+class ModelBuilder:
     """
     Creates the model, need to call explicitly 'model_builder.build'
     paras: parameters dictionary (json file).
     dt: default to 0.1 ms.
     eLns: default is false, set to true to add excitatory local interneurons.
     """
-    def __init__(self, paras:dict, dt = 0.1, eLns = False):
+    def __init__(self, paras:dict, dt):
 
         self.paras = paras
         self.dt = dt
-        self.eLns = eLns
+
+        self.model_settings = dict()
 
         self.model = GeNNModel("double", "beeAL")
         self.model.dt = dt
@@ -29,81 +30,90 @@ class model_builder:
         self.lns = None
         self.elns = None
 
-    def _neuron_groups_init(self):
+    def _neuron_groups_init(self, ors=True, orns=True, spike_orn=True, pns=True, spike_pn=True, lns=True, spike_ln=True, elns=True, spike_eln=True):
 
-        self.ors = self.model.add_neuron_population("or", self.paras["num"]["glo"], self.paras["or_eq"], self.paras["param_or"], self.paras["initial_param_or"])
-        self.orns = self.model.add_neuron_population("orn", self.paras["num"]["glo"]*self.paras["num"]["orn"], self.paras["adapt_lifi"], self.paras["param_orn"], self.paras["initial_param_orn"])
-        self.orns.spike_recording_enabled = True
-        self.pns = self.model.add_neuron_population("pn", self.paras["num"]["glo"]*self.paras["num"]["pn"], self.paras["adapt_lifi"], self.paras["param_pn"], self.paras["initial_param_pn"])
-        self.pns.spike_recording_enabled = True
-        self.lns = self.model.add_neuron_population("ln", self.paras["num"]["glo"]*self.paras["num"]["ln"], self.paras["adapt_lifi"], self.paras["param_ln"], self.paras["initial_param_ln"])
-        self.lns.spike_recording_enabled = True
-        if self.eLns:
+        if ors:
+            self.ors = self.model.add_neuron_population("or", self.paras["num"]["glo"], self.paras["or_eq"], self.paras["param_or"], self.paras["initial_param_or"])
+        if orns:
+            self.orns = self.model.add_neuron_population("orn", self.paras["num"]["glo"]*self.paras["num"]["orn"], self.paras["adapt_lifi"], self.paras["param_orn"], self.paras["initial_param_orn"])
+            if spike_orn:
+                self.orns.spike_recording_enabled = True
+        if pns:
+            self.pns = self.model.add_neuron_population("pn", self.paras["num"]["glo"]*self.paras["num"]["pn"], self.paras["adapt_lifi"], self.paras["param_pn"], self.paras["initial_param_pn"])
+            if spike_pn:
+                self.pns.spike_recording_enabled = True
+        if lns:
+            self.lns = self.model.add_neuron_population("ln", self.paras["num"]["glo"]*self.paras["num"]["ln"], self.paras["adapt_lifi"], self.paras["param_ln"], self.paras["initial_param_ln"])
+            if spike_ln:
+                self.lns.spike_recording_enabled = True
+        if elns:
             self.elns = self.model.add_neuron_population("eln", self.paras["num"]["glo"]*self.paras["num"]["elns"], self.paras["adapt_lifi"], self.paras["param_eln"], self.paras["initial_param_eln"])
-            self.elns.spike_recording_enabled = True
+            if spike_eln:
+                self.elns.spike_recording_enabled = True
 
-    def _synapses_init(self):
+    def _synapses_init(self, or2orn=True, orn2pn=True, orn2ln=True, pn2ln=True, ln2pn=True, ln2ln=True):
 
-        self.ors_orns = self.model.add_synapse_population(
-            "ORs_ORN",
-            "SPARSE", # the matrix connectivity type I assume is the correspondent to "SPARSE_GLOBALG" in the genn4 model
-            source=self.ors,
-            target=self.orns,
-            weight_update_init = self.weight_update_init_or,
-            postsynaptic_init= self.or_orns_postsyn,
-            connectivity_init= self.or_orns_conn
-        )
-
-        self.orns_pns = self.model.add_synapse_population(
-            "ORNs_PNs",
-            "SPARSE",
-            source= self.orns,
-            target= self.pns,
-            weight_update_init= self.weight_update_init_orn2pn,
-            postsynaptic_init= self.orn_pn_postsyn,
-            connectivity_init= self.orn_pn_conn
-        )
-
-        self.orns_lns = self.model.add_synapse_population(
-            "ORNs_LNs",
-            "SPARSE",
-            source= self.orns,
-            target= self.lns,
-            weight_update_init= self.weight_update_init_orn2ln,
-            postsynaptic_init= self.orn_ln_postsyn,
-            connectivity_init= self.orn_ln_conn
-        )
-
-        self.pns_lns = self.model.add_synapse_population(
-            "PNs_LNs",
-            "SPARSE",
-            source= self.pns,
-            target= self.lns,
-            weight_update_init= self.weight_update_init_pn2ln,
-            postsynaptic_init= self.pn_ln_postsyn,
-            connectivity_init= self.pn_ln_conn
-        )
-
-        self.lns_pns = self.model.add_synapse_population(
-            "LNs_PNs",
-            "DENSE",
-            source= self.lns,
-            target= self.pns,
-            weight_update_init= self.weight_update_init_ln2pn,
-            postsynaptic_init= self.ln_pn_postsyn,
-            connectivity_init= None # since everyone is connected to everyone (in old GeNN here would put
-            # the g for inhibitory synapses, however now its already done in 'init_weight_update')
-        )
-
-        self.lns_lns = self.model.add_synapse_population(
-            "LNs_LNs",
-            "DENSE",
-            source= self.lns,
-            target= self.lns,
-            weight_update_init= self.weight_update_init_ln2ln,
-            postsynaptic_init= self.ln_ln_postsyn,
-            connectivity_init= None # since everyone is connected to everyone
-        )
+        if or2orn:
+            self.ors_orns = self.model.add_synapse_population(
+                "ORs_ORN",
+                "SPARSE", # the matrix connectivity type I assume is the correspondent to "SPARSE_GLOBALG" in the genn4 model
+                source=self.ors,
+                target=self.orns,
+                weight_update_init = self.weight_update_init_or,
+                postsynaptic_init= self.or_orns_postsyn,
+                connectivity_init= self.or_orns_conn
+            )
+        if orn2pn:
+            self.orns_pns = self.model.add_synapse_population(
+                "ORNs_PNs",
+                "SPARSE",
+                source= self.orns,
+                target= self.pns,
+                weight_update_init= self.weight_update_init_orn2pn,
+                postsynaptic_init= self.orn_pn_postsyn,
+                connectivity_init= self.orn_pn_conn
+            )
+        if orn2ln:
+            self.orns_lns = self.model.add_synapse_population(
+                "ORNs_LNs",
+                "SPARSE",
+                source= self.orns,
+                target= self.lns,
+                weight_update_init= self.weight_update_init_orn2ln,
+                postsynaptic_init= self.orn_ln_postsyn,
+                connectivity_init= self.orn_ln_conn
+            )
+        if pn2ln:
+            self.pns_lns = self.model.add_synapse_population(
+                "PNs_LNs",
+                "SPARSE",
+                source= self.pns,
+                target= self.lns,
+                weight_update_init= self.weight_update_init_pn2ln,
+                postsynaptic_init= self.pn_ln_postsyn,
+                connectivity_init= self.pn_ln_conn
+            )
+        if ln2pn:
+            self.lns_pns = self.model.add_synapse_population(
+                "LNs_PNs",
+                "DENSE",
+                source= self.lns,
+                target= self.pns,
+                weight_update_init= self.weight_update_init_ln2pn,
+                postsynaptic_init= self.ln_pn_postsyn,
+                connectivity_init= None # since everyone is connected to everyone (in old GeNN here would put
+                # the g for inhibitory synapses, however now its already done in 'init_weight_update')
+            )
+        if ln2ln:
+            self.lns_lns = self.model.add_synapse_population(
+                "LNs_LNs",
+                "DENSE",
+                source= self.lns,
+                target= self.lns,
+                weight_update_init= self.weight_update_init_ln2ln,
+                postsynaptic_init= self.ln_ln_postsyn,
+                connectivity_init= None # since everyone is connected to everyone
+            )
 
     def _connectivity_init(self):
 
@@ -168,7 +178,7 @@ class model_builder:
             # so here I create a reference to ra (that I assume is the variable referenced in the og model
             # (i.e., the fraction of bound and activated receptors)). Also in genn5 changed from synapse_dynamics_code to pre_spike_syn_code
         )
-        self.weigth_update_init_or = init_weight_update(
+        self.weight_update_init_or = init_weight_update(
             snippet= self.pass_or,
             params={},
             vars={},
@@ -189,12 +199,8 @@ class model_builder:
         self.or_orns_postsyn = init_postsynaptic(snippet= self.pass_postsyn, params={}, vars={})
         self.or_orns_conn = init_sparse_connectivity(snippet= self.ors2orns_connect, params={})
 
-    def _synaptic_models_init(self):
-        
-        # OR obv are not connected to ORNs w synapses,
-        # so special code is in the method '_custom_or2orn_postsyn_model_init'.
-
-        # ORN to PN
+    def _orn2pn_init(self):
+    # ORN to PN
         self.weight_update_init_orn2pn = init_weight_update(
             "StaticPulse",
             params={},
@@ -215,77 +221,87 @@ class model_builder:
             }
         )
 
-        # ORN to LN
-        self.weight_update_init_orn2ln = init_weight_update(
-            "StaticPulse",
-            params={},
-            vars= self.paras["orns_lns_ini"]
-        )
-        self.orn_ln_postsyn = init_postsynaptic(
-            "ExpCond",
-            params= self.paras["orns_lns_post_params"],
-            vars= {},
-            var_refs= {"V": self.v_ln_ref}
-        )
-        self.orn_ln_conn = init_sparse_connectivity(
-            self.orns_al_connect,
-            params={
-                "n_orn": self.paras["num"]["orn"],
-                "n_trg": self.paras["num"]["ln"],
-                "n_pre": self.paras["n_orn_ln"]
-            }
-        )
+    def _synaptic_models_init(self):
+        # OR obv are not connected to ORNs w synapses,
+        # so special code is in the method '_custom_or2orn_postsyn_model_init'.
+        self._orn2pn_init()
 
-        # PN to LN
-        self.weight_update_init_pn2ln = init_weight_update(
-            "StaticPulse",
-            params={},
-            vars= self.paras["pns_lns_ini"]
-        )
-        self.pn_ln_postsyn = init_postsynaptic(
-            "ExpCond",
-            params= self.paras["pns_lns_post_params"],
-            vars= {},
-            var_refs= {"V": self.v_ln_ref}
-        )
-        self.pn_ln_conn = init_sparse_connectivity(
-            self.pns_lns_connect,
-            params={
-                "n_pn": self.paras["num"]["pn"],
-                "n_ln": self.paras["num"]["ln"]
-            }
-        )
 
-        # LN to PN
-        g_ln2pn = {"g": 5.5e-5} # value from 'data' in fantoni's version, see if and how they are changed.
-        # Also present in 2023 version, modified by user specified weight 'ino', see "lns_pns_g"
-        self.weight_update_init_ln2pn = init_weight_update(
-            "StaticPulse",
-            params={},
-            vars= g_ln2pn
-        )
-        self.ln_pn_postsyn = init_postsynaptic(
-            "ExpCond",
-            params= self.paras["lns_pns_post_params"],
-            vars= {},
-            var_refs= {"V": self.v_pn_ref}
-)
+        def _orn2ln_init(self):
+            # ORN to LN
+            self.weight_update_init_orn2ln = init_weight_update(
+                "StaticPulse",
+                params={},
+                vars= self.paras["orns_lns_ini"]
+            )
+            self.orn_ln_postsyn = init_postsynaptic(
+                "ExpCond",
+                params= self.paras["orns_lns_post_params"],
+                vars= {},
+                var_refs= {"V": self.v_ln_ref}
+            )
+            self.orn_ln_conn = init_sparse_connectivity(
+                self.orns_al_connect,
+                params={
+                    "n_orn": self.paras["num"]["orn"],
+                    "n_trg": self.paras["num"]["ln"],
+                    "n_pre": self.paras["n_orn_ln"]
+                }
+            )
 
-        #LN to LN
-        g_ln2ln = {"g": 2.0e-5} # value from 'data' in fantoni's version, see if and how they are changed
-        # Also present in 2023 version, modified by user specified weight 'ino', see "lns_lns_g"
+        def _pn2ln_init(self):
+            # PN to LN
+            self.weight_update_init_pn2ln = init_weight_update(
+                "StaticPulse",
+                params={},
+                vars= self.paras["pns_lns_ini"]
+            )
+            self.pn_ln_postsyn = init_postsynaptic(
+                "ExpCond",
+                params= self.paras["pns_lns_post_params"],
+                vars= {},
+                var_refs= {"V": self.v_ln_ref}
+            )
+            self.pn_ln_conn = init_sparse_connectivity(
+                self.pns_lns_connect,
+                params={
+                    "n_pn": self.paras["num"]["pn"],
+                    "n_ln": self.paras["num"]["ln"]
+                }
+            )
 
-        self.weight_update_init_ln2ln = init_weight_update(
-            "StaticPulse",
-            params={},
-            vars= g_ln2ln
-        )
-        self.ln_ln_postsyn = init_postsynaptic(
-            "ExpCond",
-            params= self.paras["lns_lns_post_params"],
-            vars= {},
-            var_refs= {"V": self.v_ln_ref}
-        )
+        def _ln2pn_init(self):
+            # LN to PN
+            g_ln2pn = {"g": 5.5e-5} # value from 'data' in fantoni's version, see if and how they are changed.
+            # Also present in 2023 version, modified by user specified weight 'ino', see "lns_pns_g"
+            self.weight_update_init_ln2pn = init_weight_update(
+                "StaticPulse",
+                params={},
+                vars= g_ln2pn
+            )
+            self.ln_pn_postsyn = init_postsynaptic(
+                "ExpCond",
+                params= self.paras["lns_pns_post_params"],
+                vars= {},
+                var_refs= {"V": self.v_pn_ref}
+            )
+
+        def _ln2ln_init(self):
+            #LN to LN
+            g_ln2ln = {"g": 2.0e-5} # value from 'data' in fantoni's version, see if and how they are changed
+            # Also present in 2023 version, modified by user specified weight 'ino', see "lns_lns_g"
+
+            self.weight_update_init_ln2ln = init_weight_update(
+                "StaticPulse",
+                params={},
+                vars= g_ln2ln
+            )
+            self.ln_ln_postsyn = init_postsynaptic(
+                "ExpCond",
+                params= self.paras["lns_lns_post_params"],
+                vars= {},
+                var_refs= {"V": self.v_ln_ref}
+            )
 
     def _variables_reference_puller(self):
         
@@ -293,7 +309,7 @@ class model_builder:
         self.v_pn_ref = create_var_ref(self.pns, "V")
         self.v_ln_ref = create_var_ref(self.lns, "V")
 
-    def _actual_building(self):
+    def _loader(self):
         print("all good, building model...")
         print("GPU ram before build:")
         try:
@@ -320,8 +336,8 @@ class model_builder:
         self._custom_or2orn_postsyn_model_init()
         self._synaptic_models_init()
         self._synapses_init()
-        self._actual_building()
+        self._loader()
 
-        return self.model
+        return self.model, "model built succesfully"
 
 
