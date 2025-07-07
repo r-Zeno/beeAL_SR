@@ -1,13 +1,15 @@
 {
-    "num": { "...": "..." },
+    "Num": { "...": "..." },
     "param_or": { "...": "..." },
 
+    "spk_rec_steps": "10",
+    
     "components": {
         "neurons": {
             "ors": true,
             "orns": true,
             "pns": true,
-            "lns": true,
+            "lns": false,
             "elns": false
         },
         "synapses": {
@@ -15,14 +17,14 @@
             "orn2pn": true,
             "orn2ln": true,
             "pn2ln": true,
-            "ln2pn": false,
+            "ln2pn": true,
             "ln2ln": false
         },
         "spikes to record": {
             "orn": true,
             "pn": true,
             "ln": true,
-            "eln": true
+            "eln": false
         }
     }
 }

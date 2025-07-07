@@ -31,13 +31,15 @@ class ModelBuilder:
 
         # set the needed pops for the connections that could be selected
         self.build_plan = {
-            "or2orn": (self.or2orn, ["ors", "orns"]),
-            "orn2pn": (self.orn2pn, ["orns", "pns"]),
-            "orn2ln": (self.orn2ln, ["orns", "lns"]),
-            "pn2ln": (self.pn2ln, ["pns", "lns"]),
-            "ln2pn": (self.ln2pn, ["lns", "pns"]),
-            "ln2ln": (self.ln2ln, ["lns"]) 
+            "or2orn": (self._or2orn, "ors", "orns"),
+            "orn2pn": (self._orn2pn, "orns", "pns"),
+            "orn2ln": (self._orn2ln, "orns", "lns"),
+            "pn2ln": (self._pn2ln, "pns", "lns"),
+            "ln2pn": (self._ln2pn, "lns", "pns"),
+            "ln2ln": (self._ln2ln, "lns") 
         }
+
+        self.neuron_pops = ["ors","orns","pns","lns","elns"]
 
     def _neuron_groups_init(self, ors=True, orns=True, spike_orn=True, pns=True, spike_pn=True, lns=True, spike_ln=True, elns=False, spike_eln=True):
 
@@ -352,7 +354,7 @@ class ModelBuilder:
 
         start = time.time()
         self.model.build()
-        self.model.load(num_recording_timesteps = self.paras["spk_rec_steps"])
+        self.model.load(num_recording_timesteps = int(self.paras["spk_rec_steps"]))
         end = time.time()
 
         timetaken = round(end-start, 2)
@@ -367,37 +369,43 @@ class ModelBuilder:
         This is the main method to build the network, calls every GeNN function to build and load the model.
         
         """
-
-        neurons = self.paras.get("neurons", {})
-        connections = self.paras.get("synapses", {})
-        spikes_rec = self.paras.get("spikes to record", {})
+        components = self.paras.get("components")
+        neurons = components.get("neurons")
+        connections = components.get("synapses")
+        spikes_rec = components.get("spikes to record")
 
         connections_tobuild = []
-        
         for type, tobuild in connections.items():
+            
+                if tobuild:
 
-            if tobuild and type in self.build_plan:
-                connections_tobuild.append(type)
-            elif type not in self.build_plan:
-                print(f"error: the connection type {type} specified in paras is not part of the AL")
+                    if type in self.build_plan:
+                        connections_tobuild.append(type)
+                    else: print(f"Warning: {type} not in AL model, check json")
+
+        print(connections_tobuild)
 
         # now use a set to add neurons, this way no duplicates appear if a population is present
         # explicitly in the .json configuration and implicitly in the required neurons for a given connection
         neurons_tobuild = set()
 
-        # this is wrong check it tomorrow!
-        for conn_type in connections_tobuild:
-            neurons_tobuild.update(self.build_plan[conn_type][1]) # take the neuron pops needed for the specified connections
+        for conn_type in connections_tobuild:  # take the neuron pops necessary for the specified connections
+
+            if conn_type != "ln2ln":
+                neurons_tobuild.add(self.build_plan[conn_type][1])
+                neurons_tobuild.add(self.build_plan[conn_type][2])
+            else: neurons_tobuild.add(self.build_plan[conn_type][1]) # ugly way to avoid indexing error since ln2ln only has 1 necessary pop
             
-            for ntype, tobuild in neurons.items():
+        for ntype, tobuild in neurons.items():
+            
+            if ntype in self.neuron_pops:
+                if tobuild:
+                    neurons_tobuild.add(ntype) # its a set so duplicate are ignored!
+            else: print(f"Error: {ntype} not present in AL")
 
-                if ntype in neurons.items():
+        print(neurons_tobuild)
 
-                    if tobuild:
-                        neurons_tobuild.add(ntype) # its a set so duplicate are ignored!
-                    else: print(f"error: neuron pupulation {ntype} from the json paras is not among the AL pops")
-
-        print(f"building model with {neurons_tobuild} populations...")
+        print(f"building model with {neurons_tobuild} populations and {connections_tobuild} connections...")
         self._neuron_groups_init(
             ors=("ors" in neurons_tobuild), orns=("orns" in neurons_tobuild),
             pns=("pns" in neurons_tobuild), lns=("lns" in neurons_tobuild),
