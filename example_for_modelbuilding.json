@@ -125,7 +125,7 @@
             "ors": true,
             "orns": true,
             "pns": true,
-            "lns": true,
+            "lns": false,
             "elns": false
         },
         "synapses": {
