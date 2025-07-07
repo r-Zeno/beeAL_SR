@@ -1,9 +1,9 @@
 {
     "num": {
-	"glo": "160",
-	"orn": "60",
-	"pn": "5",
-	"ln": "25"
+	"glo": 160,
+	"orn": 60,
+	"pn": 5,
+	"ln": 25
     },
  
     "param_or": {},
@@ -73,9 +73,9 @@
 		"a": 0.0
     },
     
-    "spk_rec_steps": "10",
+    "spk_rec_steps": 1000,
 
-	"n_orn_pn": "12",
+	"n_orn_pn": 12,
 
     "orns_pns_ini": {
         "g": 0.008
@@ -86,7 +86,7 @@
         "E": 0.0
     },
 
-    "n_orn_ln": "12",
+    "n_orn_ln": 12,
     
 	"orns_lns_ini": {
         "g": 0.008
@@ -134,7 +134,7 @@
             "orn2ln": true,
             "pn2ln": true,
             "ln2pn": true,
-            "ln2ln": false
+            "ln2ln": true
         },
         "spikes to record": {
             "orn": true,

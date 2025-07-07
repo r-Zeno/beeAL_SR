@@ -46,15 +46,15 @@ def glo_avg(sdf: np.ndarray, n):
     return gsdf
 
 
-label = "sim_20250517_201932"
+label = "sim_20250707_193645"
 pop = [
        "orn",
        "ln",
        "pn"
        ]
 
-p = "pn"
-N = 5*160
+p = "orn"
+N = 60*160
 sigma_sdf = 100
 dt_sdf = 1
 

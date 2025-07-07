@@ -46,14 +46,14 @@ def glo_avg(sdf: np.ndarray, n):
     return gsdf
 
 
-label = "sim_20250519_212705"
+label = "sim_20250707_203605"
 pop = [
        "orn",
        "ln",
        "pn"
        ]
 
-p = "pn"
+p = "ln"
 
 sc = 0
 if p  == "pn":

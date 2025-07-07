@@ -1,9 +1,15 @@
 import json
 from ModelBuilder import ModelBuilder
+from Experimenter import Experimenter
 
 with open('/Users/zenorossi/beeAL/example_for_modelbuilds.json') as f:
-    parameters = json.load(f)
-    print(parameters)
+    mod_parameters = json.load(f)
 
-builder = ModelBuilder(parameters)
-model = builder.build()
+with open('/Users/zenorossi/beeAL/exp_paras.json') as f:
+    exp_parameters = json.load(f)
+
+builder = ModelBuilder(mod_parameters)
+model = builder.build(3.0)
+
+experiment = Experimenter(model, experiment_parameters=exp_parameters)
+experiment.run()

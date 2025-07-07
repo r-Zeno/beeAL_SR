@@ -4,18 +4,18 @@ def gauss_odor(n_glo: int, m: float, sd_b: float, a_rate: float, A: float=1.0, c
     """
     Generates odor binding rate and activation rate, following a gaussian for each glom,
     based on its distance (only for binding rate if hom_a=True) from the maximally responding glom = m (midpoint of gaussian).
-    n_glo: number of glomeruli
-    m: midpoint of gaussian profile for binding rates (also the idx of the maximum responding glom to that odor)
-    sd_b: the standardard deviation of gaussian distr of binding rates (so how specific is the glom response to the odor)
-    a_rate: activation rate for homogenous odor act rate. used only if rand_a=False (it is by default)
-    A: amplitude of gaussian
-    clip: cut-off for binding threshold, if a glom following the assignement based on distance would have a lower binding rate its set to 0
-    m_a: mean activation rate
-    sd_a: standard deviation of activation rate
-    min_a: minimum act rate value
-    max_a: maximum act rate value
-    rand_a: whether the activation rate is randomly chosen or specified by "a_rate"
-    hom_a: whether the activation rate is the same for all glomeruli (for the individual odor) 
+    - n_glo: number of glomeruli
+    - m: midpoint of gaussian profile for binding rates (also the idx of the maximum responding glom to that odor)
+    - sd_b: the standardard deviation of gaussian distr of binding rates (so how specific is the glom response to the odor)
+    - a_rate: activation rate for homogenous odor act rate. used only if rand_a=False (it is by default)
+    - A: amplitude of gaussian
+    - clip: cut-off for binding threshold, if a glom following the assignement based on distance would have a lower binding rate its set to 0
+    - m_a: mean activation rate
+    - sd_a: standard deviation of activation rate
+    - min_a: minimum act rate value
+    - max_a: maximum act rate value
+    - rand_a: whether the activation rate is randomly chosen or specified by "a_rate"
+    - hom_a: whether the activation rate is the same for all glomeruli (for the individual odor) 
     """
     odor = np.zeros((n_glo,2)) # row: glom, col: 0 -> binding rate|1 -> activation rate
     d = np.arange(0,n_glo) # representation of glomeruli
@@ -47,11 +47,11 @@ def set_odor_simple(ors, slot, odor, con, hill):
     """
     setting parameters of ors for the chosen odor (effectively "presenting"the odor to the ors).
     Difference from the og function: it autonomously views and pushes the variables to the ors.
-    ors: the population of ors (receptors)
-    odor: 
-    slot: the odor slot to use for each or (each has 3, but can be easily augmented)
-    con: concentration of odor: 1e-7 to 1e-1
-    hill: the hill coefficient
+    - ors: the population of ors (receptors)
+    - odor: 
+    - slot: the odor slot to use for each or (each has 3, but can be easily augmented)
+    - con: concentration of odor: 1e-7 to 1e-1
+    - hill: the hill coefficient
     """
     od = np.squeeze(odor)
     kp1cn = np.power(od[:,0]*con,hill)
