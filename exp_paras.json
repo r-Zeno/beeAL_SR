@@ -19,6 +19,7 @@
         ["pn", "V"],
         ["ln", "V"],
         ["or", "rb_0"]
-    ]
-    
+    ],
+
+    "rec_states": false
 }

@@ -6,8 +6,8 @@ import json
 
 
 plot = True
-save_plot2D = True
-save_plot3D = True
+save_plot2D = False
+save_plot3D = False
 
 path = "/Users/zenorossi/beeAL/sim_20250707_203605"
 with open("/Users/zenorossi/beeAL/analysis_params.json") as f:
@@ -33,6 +33,7 @@ dt_sdf = 1
 # harcoded values from experiment
 total_t = 8000
 trials = [1,2]
+p ={}
 
 for pop in anpop:
     
@@ -58,6 +59,8 @@ for pop in anpop:
     lsdfs_od1.append(make_sdf(spike_t[li:ri], spike_id[li:ri], np.arange(0,N), left-3*sigma_sdf, right-3*sigma_sdf, dt_sdf, sigma_sdf)) # originally it was "left-3*sigma_sdf" and so on for the limits,
     # i changed it beacause its already done within the make_sdf code itself. could this be a potential issue? need to check!
     gsdfs_od1.append(glo_avg(lsdfs_od1[-1],60))
+
+    p[pop] = gsdfs_od1
     
     if plot:
         mn= [-5, -40]
@@ -88,5 +91,7 @@ for pop in anpop:
         if save_plot3D:
             plt.savefig(f"{pop}_sdf_surf.png", dpi=300)
 
+plot_path = os.path.join(path, "Plots")
+os.makedirs(plot_path, exist_ok=True)
 
 

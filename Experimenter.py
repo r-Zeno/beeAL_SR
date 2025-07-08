@@ -14,6 +14,7 @@ class Experimenter:
 
         self.model = model
         self.paras = experiment_parameters
+        self.rec_states = self.paras["rec_states"]
         
         current_dir = os.path.dirname(os.path.abspath(__file__))
         now = time.strftime("%Y%m%d_%H%M%S")
@@ -167,15 +168,16 @@ class Experimenter:
             np.save(os.path.join(self.folder, pop + "_spike_t.npy"), self.spike_t[pop])
             np.save(os.path.join(self.folder, pop + "_spike_id.npy"), self.spike_id[pop])
 
-        final_recorded_vars = {}
-        for key, segments_list in self.vars_rec.items():
-            if segments_list:
-                self.vars_rec[key] = np.vstack(segments_list)
-            else:
-                self.vars_rec[key] = np.array([])
+        if self.rec_states:
+            for key, segments_list in self.vars_rec.items():
+                if segments_list:
+                    self.vars_rec[key] = np.vstack(segments_list)
+                else:
+                    self.vars_rec[key] = np.array([])
 
-        for pop_var2 in self.vars_rec:
-            np.save(os.path.join(self.folder, f"{pop_var2}_states.npy"), self.vars_rec[pop_var2])
+            for pop_var2 in self.vars_rec:
+                np.save(os.path.join(self.folder, f"{pop_var2}_states.npy"), self.vars_rec[pop_var2])
+        else: print("Warning: variable states (V) are not being recorded for this run!")
 
     def run(self):
         """
