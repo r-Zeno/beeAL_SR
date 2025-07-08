@@ -65,7 +65,7 @@ elif p == "orn":
     
 N = sc*160
         
-    
+
 sigma_sdf = 100
 dt_sdf = 1
 

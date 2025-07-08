@@ -12,4 +12,4 @@ builder = ModelBuilder(mod_parameters)
 model = builder.build(3.0)
 
 experiment = Experimenter(model, experiment_parameters=exp_parameters)
-experiment.run()
+data_folder = experiment.run()

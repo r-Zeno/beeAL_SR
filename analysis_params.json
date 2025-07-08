@@ -1,0 +1,22 @@
+{
+    "pop_to_analyze": {
+        "or": false,
+        "orn": true,
+        "pn": true,
+        "ln": true,
+        "eln": false
+    },
+
+    "what_to_analyze": {
+        "or": "rb_0",
+        "orn": ["V", "sdf"],
+        "pn": ["V", "sdf"],
+        "ln": ["V", "sdf"],
+        "eln": ["V", "sdf"]
+    },
+
+    "plot": true,
+    "save_sdf": true,
+    "save_2Dplot": true,
+    "save_3Dplot": true
+}

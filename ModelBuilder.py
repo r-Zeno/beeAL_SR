@@ -499,6 +499,7 @@ class ModelBuilder:
         for ntype, tobuild in neurons.items():
             
             if ntype in self.neuron_pops:
+                
                 if tobuild:
                     neurons_tobuild.add(ntype) # its a set so duplicate are ignored!
             else: print(f"Error: {ntype} not present in AL")

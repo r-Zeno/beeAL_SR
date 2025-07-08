@@ -79,3 +79,46 @@ def set_odor_simple(ors, slot, odor, con, hill):
     for name in vars_names:
         ors.vars[name].push_to_device()
         print(f"Pushed {name} to ors to device.")
+
+def make_sdf(sT, sID, allID, t0, tmax, dt, sigma):
+    """"
+    Computes Spike Density Function from spiking data. time x neuron id
+    """
+    tleft= t0-3*sigma
+    tright= tmax+3*sigma
+    n= int((tright-tleft)/dt)
+    sdfs= np.zeros((n,len(allID)))
+    kwdt= 3*sigma
+    i= 0
+    x= np.arange(-kwdt,kwdt,dt)
+    x= np.exp(-np.power(x,2)/(2*sigma*sigma))
+    x= x/(sigma*np.sqrt(2.0*np.pi))*1000.0
+    if sT is not None:
+        for t, sid in zip(sT, sID):
+            if (t > t0 and t < tmax): 
+                left= int((t-tleft-kwdt)/dt)
+                right= int((t-tleft+kwdt)/dt)
+                if right <= n:
+                    sdfs[left:right,sid]+=x
+           
+    return sdfs
+
+def force_aspect(ax,aspect):
+    """
+    Controls aspect ratio of figs
+    """
+    im = ax.get_images()
+    extent =  im[0].get_extent()
+    ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+
+def glo_avg(sdf: np.ndarray, n):
+    """
+    Returns the average sdf for glomerolus
+    sdf: spike density function (time x neurons)
+    n: number of neurons (of the type plotted) per glomerolus
+    """
+    nglo= sdf.shape[1]//n
+    gsdf= np.zeros((sdf.shape[0],nglo))
+    for i in range(nglo):
+        gsdf[:,i]= np.mean(sdf[:,n*i:n*(i+1)],axis=1)
+    return gsdf

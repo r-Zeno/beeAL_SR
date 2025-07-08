@@ -2,7 +2,7 @@ import numpy as np
 from pygenn.genn_model import GeNNModel
 import time
 import os
-from helpers import *
+from helpers import gauss_odor, set_odor_simple
 
 class Experimenter:
     """
@@ -185,3 +185,5 @@ class Experimenter:
         self._experiment_runner()
         self._data_saver()
         print(f"exp run, saved in '{self.folder}'")
+
+        return self.folder
