@@ -89,12 +89,13 @@ class Analyzer:
                     
             if self.save2D:
                 plt.savefig(os.path.join(plot_path, f"{pop}_sdf_hotmap.png"), dpi=300)
-                    
+            plt.close(fig)
+            
             x = np.arange(np.size(ts1,0))
             y = np.arange(np.size(ts1,1))
             X, Y = np.meshgrid(x, y, indexing= 'ij')
-            fig = plt.figure()
-            ax2 = fig.add_subplot(111, projection = '3d')
+            fig2 = plt.figure()
+            ax2 = fig2.add_subplot(111, projection = '3d')
             ax2.grid(False)
             ax2.xaxis.pane.fill = False
             ax2.yaxis.pane.fill = False
@@ -106,6 +107,7 @@ class Analyzer:
 
             if self.save3D:
                 plt.savefig(os.path.join(plot_path, f"{pop}_sdf_surf.png"), dpi=300)
+            plt.close(fig2)
 
     def analyze(self):
         """

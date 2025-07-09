@@ -526,4 +526,4 @@ class ModelBuilder:
         else: print("Warning: building a model without connections!")
 
         self._loader()
-        return self.model
+        return self.model, noise_lvl_try

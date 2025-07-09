@@ -2,8 +2,8 @@
     "simulation_parameters": {
 
         "noiselvl_min": 0.0,
-        "noiselvl_max": 4.0,
-        "steps": 4
+        "noiselvl_max": 3.0,
+        "steps": 2
 
     },
 

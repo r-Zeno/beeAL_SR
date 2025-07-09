@@ -2,6 +2,7 @@ import numpy as np
 from pygenn.genn_model import GeNNModel
 import time
 import os
+import json
 from helpers import gauss_odor, set_odor_simple
 
 class Experimenter:
@@ -10,17 +11,18 @@ class Experimenter:
     - model: the model created with ModelBuilder
     - experiment_parameter: dictionary containing odor/exp parameters, loaded by the simulator from json
     """
-    def __init__(self, model, experiment_parameters: dict):
+    def __init__(self, model, experiment_parameters: dict, sim_path, n_run:int, noise_lvl:float):
 
+        self.noise_lvl = noise_lvl
         self.model = model
         self.paras = experiment_parameters
         self.rec_states = self.paras["rec_states"]
-        
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        now = time.strftime("%Y%m%d_%H%M%S")
-        dirname = f"sim_{now}"
-        self.folder = os.path.join(current_dir, dirname)
-        os.makedirs(self.folder)
+        self.n_run = n_run
+        self.run_settings= dict()
+
+        dir_name = f"run_{str(self.n_run)}"
+        self.exp_folder = os.path.join(sim_path, dir_name)
+        os.makedirs(self.exp_folder)
 
     def _odor_maker(self):
         
@@ -39,7 +41,7 @@ class Experimenter:
 
         # defining Hill coefficient
         self.hill_exp= np.random.uniform(0.95, 1.05, self.paras["num_glo"])
-        np.save(os.path.join(self.folder,"_hill"), self.hill_exp)
+        np.save(os.path.join(self.exp_folder,"_hill"), self.hill_exp)
 
     def _experiment_runner(self):
 
@@ -165,8 +167,8 @@ class Experimenter:
                 self.spike_id[pop] = np.hstack(self.spike_id[pop])
 
         for pop in self.pop_to_rec:
-            np.save(os.path.join(self.folder, pop + "_spike_t.npy"), self.spike_t[pop])
-            np.save(os.path.join(self.folder, pop + "_spike_id.npy"), self.spike_id[pop])
+            np.save(os.path.join(self.exp_folder, pop + "_spike_t.npy"), self.spike_t[pop])
+            np.save(os.path.join(self.exp_folder, pop + "_spike_id.npy"), self.spike_id[pop])
 
         if self.rec_states:
             for key, segments_list in self.vars_rec.items():
@@ -176,8 +178,12 @@ class Experimenter:
                     self.vars_rec[key] = np.array([])
 
             for pop_var2 in self.vars_rec:
-                np.save(os.path.join(self.folder, f"{pop_var2}_states.npy"), self.vars_rec[pop_var2])
+                np.save(os.path.join(self.exp_folder, f"{pop_var2}_states.npy"), self.vars_rec[pop_var2])
         else: print("Warning: variable states (V) are not being recorded for this run!")
+
+        self.run_settings["noise_lvl"] = self.noise_lvl
+        with open(os.path.join(self.exp_folder, f"run_{self.n_run}_settings.json"), 'w') as fp:
+            json.dump(self.run_settings, fp)
 
     def run(self):
         """
@@ -186,6 +192,6 @@ class Experimenter:
         self._odor_maker()
         self._experiment_runner()
         self._data_saver()
-        print(f"exp run, saved in '{self.folder}'")
+        print(f"exp run, saved in '{self.exp_folder}'")
 
-        return self.folder
+        return self.exp_folder
