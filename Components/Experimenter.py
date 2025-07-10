@@ -11,12 +11,13 @@ class Experimenter:
     - model: the model created with ModelBuilder
     - experiment_parameter: dictionary containing odor/exp parameters, loaded by the simulator from json
     """
-    def __init__(self, model, experiment_parameters: dict, sim_path, n_run:int, noise_lvl:float):
+    def __init__(self, model, experiment_parameters: dict, sim_path, n_run:int, noise_lvl:float, spk_rec_steps:int):
 
         self.noise_lvl = noise_lvl
         self.model = model
         self.paras = experiment_parameters
         self.rec_states = self.paras["rec_states"]
+        self.spk_rec_steps = spk_rec_steps # ugly way to match the spike pulling rate to the model recording steps
         self.n_run = n_run
         self.run_settings= dict()
 
@@ -142,7 +143,7 @@ class Experimenter:
                     self.vars_rec[view_key].append(current_val)
 
             # pulling spikes
-            if int_t%1000 == 0: # every 1000 timesteps (int_t%1000 == 0 checks if int_t/1000 is equal to 0)
+            if int_t%self.spk_rec_steps == 0: # every 1000 timesteps (int_t%1000 == 0 checks if int_t/1000 is equal to 0)
                 self.model.pull_recording_buffers_from_device()
                 
                 for pop in self.pop_to_rec:

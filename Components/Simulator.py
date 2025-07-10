@@ -26,6 +26,7 @@ class Simulator:
         self.exp_paras = parameters["experiment_parameters"]
         self.an_paras = parameters["analysis_parameters"]
         self.sim_paras = parameters["simulation_parameters"]
+        self.spk_rec_steps = self.mod_paras["spk_rec_steps"] # ugly way to pass model recording steps to the Experimenter
 
         self.noise_lvls = np.linspace(self.sim_paras["noiselvl_min"], self.sim_paras["noiselvl_max"], self.sim_paras["steps"])
 
@@ -45,7 +46,7 @@ class Simulator:
             build_plan = ModelBuilder(self.mod_paras)
             model, noise = build_plan.build(lvl) # also take the noise level in the current model, only to write it in the run setings
 
-            experiment = Experimenter(model, self.exp_paras, self.folder, run, noise)
+            experiment = Experimenter(model, self.exp_paras, self.folder, run, noise, self.spk_rec_steps)
             data_path = experiment.run()
 
             analysis = Analyzer(data_path, self.an_paras, self.mod_paras)
