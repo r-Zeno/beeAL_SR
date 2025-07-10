@@ -1,6 +1,7 @@
 beeAL_CODE/
 __pycache__/
-/.DS_Store
+.DS_Store
 *.json~
 /.gitignore~
 sim*/**
+/Components/.DS_Store

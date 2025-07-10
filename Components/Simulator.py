@@ -1,6 +1,7 @@
 import json
 import time
 import os
+import pathlib as p
 import numpy as np
 from ModelBuilder import ModelBuilder
 from Experimenter import Experimenter
@@ -16,7 +17,9 @@ class Simulator:
         with open(self.paras_path) as f:
             parameters = json.load(f)
         
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        simdirname = "simulations"
+        current_dir = os.path.join(current_dir, simdirname)
         now = time.strftime("%Y%m%d_%H%M%S")
         dirname = f"sim_{now}"
         self.folder = os.path.join(current_dir, dirname)
