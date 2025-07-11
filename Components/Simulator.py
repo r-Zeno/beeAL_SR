@@ -5,7 +5,7 @@ import pathlib as p
 import numpy as np
 from ModelBuilder import ModelBuilder
 from Experimenter import Experimenter
-from Analyzer import Analyzer
+from SDFplotter import SDFplotter
 
 class Simulator:
 
@@ -52,7 +52,7 @@ class Simulator:
             experiment = Experimenter(model, self.exp_paras, self.folder, run, noise, self.spk_rec_steps)
             data_path = experiment.run()
 
-            analysis = Analyzer(data_path, self.an_paras, self.mod_paras)
+            analysis = SDFplotter(data_path, self.an_paras, self.mod_paras)
             analysis.analyze()
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:

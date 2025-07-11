@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import os
 from helpers import make_sdf, force_aspect, glo_avg
 
-class Analyzer:
+class SDFplotter:
     """
     Responsible for creating an instance of sdf analysis/plotting, need to explicitly call 'analyze()'
     """
