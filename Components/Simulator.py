@@ -1,7 +1,6 @@
 import json
 import time
 import os
-import pathlib as p
 import numpy as np
 from ModelBuilder import ModelBuilder
 from Experimenter import Experimenter
