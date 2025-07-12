@@ -29,6 +29,8 @@ class Simulator:
         self.an_paras = parameters["analysis_parameters"]
         self.sim_paras = parameters["simulation_parameters"]
         self.spk_rec_steps = self.mod_paras["spk_rec_steps"] # ugly way to pass model recording steps to the Experimenter
+        self.exp_1 = self.exp_paras["experiment_concurrent"]
+        self.exp_2 = self.exp_paras["experiment_separate"]
 
         self.noise_lvls = np.linspace(self.sim_paras["noiselvl_min"], self.sim_paras["noiselvl_max"], self.sim_paras["steps"])
 
@@ -49,10 +51,10 @@ class Simulator:
             model, noise = build_plan.build(lvl) # also take the noise level in the current model, only to write it in the run setings
 
             experiment = Experimenter(model, self.exp_paras, self.folder, run, noise, self.spk_rec_steps)
-            data_path = experiment.run()
+            data_path = experiment.run(self.exp_1, self.exp_2)
 
-            analysis = SDFplotter(data_path, self.an_paras, self.mod_paras)
-            analysis.analyze()
+            sdf = SDFplotter(data_path, self.an_paras, self.mod_paras)
+            sdf.plot()
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:
             json.dump(self.sim_settings, fp, indent=4)

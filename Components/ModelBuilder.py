@@ -457,7 +457,6 @@ class ModelBuilder:
 
         start = time.time()
         self.model.build()
-        self.model.load(num_recording_timesteps = int(self.paras["spk_rec_steps"]))
         end = time.time()
 
         timetaken = round(end-start, 2)

@@ -1,9 +1,9 @@
 {
     "simulation_parameters": {
 
-        "noiselvl_min": 0.0,
+        "noiselvl_min": 3.0,
         "noiselvl_max": 3.0,
-        "steps": 4
+        "steps": 1
 
     },
 
@@ -157,6 +157,10 @@
 
     "experiment_parameters": {
 
+        "experiment_concurrent": false,
+
+        "experiment_separate": true,
+
         "num_glo": 160,
 
         "odors_stable_params": {
@@ -164,11 +168,13 @@
             "a_rate": 0.1
         },
 
-        "odor1_midpoint": 19,
-        "odor1_sd": 5,
+        "odor1_midpoint": 20,
+        "odor1_sd": 8,
 
-        "odor2_midpoint": 89,
-        "odor2_sd": 10,
+        "odor2_midpoint": 120,
+        "odor2_sd": 16,
+
+        "spk_rec_steps": 1000,
 
         "pop_to_rec": ["orn", "pn", "ln"],
 
