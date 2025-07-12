@@ -82,7 +82,7 @@ class SDFplotter:
                     if self.save1:
                         save_dir = os.path.join(sdf_path, odor_lbl)
                         os.makedirs(save_dir, exist_ok=True)
-                        np.save(os.path.join(sdf_path, f"{pop}_glo_avg_sdf"), gsdfs_od1)
+                        np.save(os.path.join(save_dir, f"{pop}_glo_avg_sdf"), gsdfs_od1)
         else:
             print("Folder structure suggests that this is the consecutive odors exp, if you don't know what this means check!")
             for pop in self.anpop:
