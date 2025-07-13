@@ -1,9 +1,9 @@
 {
     "simulation_parameters": {
 
-        "noiselvl_min": 3.0,
-        "noiselvl_max": 3.0,
-        "steps": 1
+        "noiselvl_min": 0.0,
+        "noiselvl_max": 4.0,
+        "steps": 2
 
     },
 
@@ -132,11 +132,11 @@
         
         "components": {
             "neurons": {
-                "ors": true,
-                "orns": true,
-                "pns": true,
-                "lns": true,
-                "elns": false
+                "or": true,
+                "orn": true,
+                "pn": true,
+                "ln": true,
+                "eln": false
             },
             "synapses": {
                 "or2orn": true,
@@ -177,6 +177,8 @@
         "spk_rec_steps": 1000,
 
         "pop_to_rec": ["orn", "pn", "ln"],
+
+        "noisy_pop": ["orn", "pn", "ln", "eln"],
 
         "what_to_rec": [
             ["orn", "V"],

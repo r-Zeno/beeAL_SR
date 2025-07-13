@@ -39,7 +39,7 @@ class ModelBuilder:
 
         self.neuron_pops = ["ors","orns","pns","lns","elns"]
 
-    def _neuron_groups_init(self, ors=True, orns=True, spike_orn=True, pns=True, spike_pn=True, lns=True, spike_ln=True, elns=False, spike_eln=False, noise_lvl=0.0):
+    def _neuron_groups_init(self, ors=True, orns=True, spike_orn=True, pns=True, spike_pn=True, lns=True, spike_ln=True, elns=False, spike_eln=False):
 
         if ors:
             or_eq = self._or_model_builder()
@@ -50,42 +50,43 @@ class ModelBuilder:
         adapt_lifi = None
         if (orns or pns or lns or elns) and adapt_lifi==None: # ugly? to load adapt_lifi only once
             adapt_lifi = self._lifi_builder()
-
+        
+        # should use a for loop instead
         if orns:
-            self.paras["param_orn"]["noise_A"] = noise_lvl
             self.orns = self.model.add_neuron_population("orn", int(self.paras["num"]["glo"])*int(self.paras["num"]["orn"]),
                                                         adapt_lifi, self.paras["param_orn"],
                                                         self.paras["initial_param_orn"])
+            self.orns.set_param_dynamic("noise_A", True) # needed to change noise lvl between runs without rebuilding the model
             if spike_orn:
                 self.orns.spike_recording_enabled = True
-            print(f"added orn population, noise lvl: {noise_lvl}, spike recording: {spike_orn}")
+            print(f"added orn population, spike recording: {spike_orn}")
 
         if pns:
-            self.paras["param_pn"]["noise_A"] = noise_lvl
             self.pns = self.model.add_neuron_population("pn", int(self.paras["num"]["glo"])*int(self.paras["num"]["pn"]),
                                                         adapt_lifi, self.paras["param_pn"],
                                                         self.paras["initial_param_pn"])
+            self.pns.set_param_dynamic("noise_A", True)
             if spike_pn:
                 self.pns.spike_recording_enabled = True
-            print(f"added pn population, noise lvl: {noise_lvl}, spike recording: {spike_pn}")
+            print(f"added pn population, spike recording: {spike_pn}")
 
         if lns:
-            self.paras["param_ln"]["noise_A"] = noise_lvl
             self.lns = self.model.add_neuron_population("ln", int(self.paras["num"]["glo"])*int(self.paras["num"]["ln"]),
                                                         adapt_lifi, self.paras["param_ln"],
                                                         self.paras["initial_param_ln"])
+            self.lns.set_param_dynamic("noise_A", True)
             if spike_ln:
                 self.lns.spike_recording_enabled = True
-            print(f"added ln population, noise lvl: {noise_lvl}, spike recording: {spike_ln}")
+            print(f"added ln population, spike recording: {spike_ln}")
 
         if elns:
-            self.paras["param_eln"]["noise_A"] = noise_lvl
             self.elns = self.model.add_neuron_population("eln", int(self.paras["num"]["glo"])*int(self.paras["num"]["elns"]),
                                                         adapt_lifi, self.paras["param_eln"],
                                                         self.paras["initial_param_eln"])
+            self.elns.set_param_dynamic("noise_A", True)
             if spike_eln:
                 self.elns.spike_recording_enabled = True
-            print(f"added eln population, noise lvl: {noise_lvl}, spike recording: {spike_eln}")
+            print(f"added eln population, spike recording: {spike_eln}")
 
     def _or2orn(self):
 
@@ -448,7 +449,7 @@ class ModelBuilder:
 
         return adapt_lifi
 
-    def _loader(self):
+    def _builder(self):
         print("all good, building model...")
         print("GPU ram before build:")
         try:
@@ -466,7 +467,7 @@ class ModelBuilder:
             GPUtil.showUtilization(all = False, attrList = ['memoryUtil', 'memoryTotal', 'memoryUsed', 'memoryFree']) # attrList does not work
         except: print("couldn't get gpu info: GPUtil not installed")
 
-    def build(self, noise_lvl:float=1.4):
+    def build(self):
         """
         This is the main method to build the network, calls every GeNN function to build and load the model.
         """
@@ -503,8 +504,10 @@ class ModelBuilder:
                     neurons_tobuild.add(ntype) # its a set so duplicate are ignored!
             else: print(f"Error: {ntype} not present in AL")
 
-        noise_lvl_try = noise_lvl/np.sqrt(self.dt)
+        
         print(f"building model with {neurons_tobuild} populations and {connections_tobuild} connections...")
+
+        # instead of this mess, should pass a dict with the options, to be checked by neuron_groups_init
         self._neuron_groups_init(
             ors=("ors" in neurons_tobuild), orns=("orns" in neurons_tobuild),
             pns=("pns" in neurons_tobuild), lns=("lns" in neurons_tobuild),
@@ -512,8 +515,7 @@ class ModelBuilder:
             spike_orn=spikes_rec.get("orn", True), # the second argument set the defaults if not specified
             spike_pn=spikes_rec.get("pn", True),
             spike_ln=spikes_rec.get("ln", True),
-            spike_eln=spikes_rec.get("eln", False),
-            noise_lvl=noise_lvl_try
+            spike_eln=spikes_rec.get("eln", False)
         )
 
         if connections_tobuild:
@@ -524,5 +526,5 @@ class ModelBuilder:
                 print(f"added connection {ctype}")
         else: print("Warning: building a model without connections!")
 
-        self._loader()
-        return self.model, noise_lvl_try
+        self._builder()
+        return self.model

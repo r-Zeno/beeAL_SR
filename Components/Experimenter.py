@@ -44,6 +44,18 @@ class Experimenter:
         self.hill_exp= np.random.uniform(0.95, 1.05, self.paras["num_glo"])
         np.save(os.path.join(self.folder,"_hill"), self.hill_exp)
 
+    def _noise_lvl_injecter(self):
+
+        corr_noise_lvl = self.noise_lvl/np.sqrt(self.model.dt)
+        print(f"injector for run {self.n_run}, applying noise lvl {self.noise_lvl} (corrected: {corr_noise_lvl})")
+
+        for pop in self.paras["noisy_pop"]:
+            popobj = self.model.neuron_populations.get(pop)
+            print(popobj)
+            if popobj is not None:
+                print(f"injecting population{popobj}")
+                popobj.set_dynamic_param_value("noise_A", corr_noise_lvl)
+
     def _rec_var_init(self):
 
         self.pop_to_rec = self.paras["pop_to_rec"]
@@ -103,6 +115,7 @@ class Experimenter:
             
             # to load model in a fresh state
             self.model.load(num_recording_timesteps = int(self.paras["spk_rec_steps"]))
+            self._noise_lvl_injecter()
 
             # init spiking data
             spike_t = {}
@@ -188,22 +201,20 @@ class Experimenter:
         odor2_removed = False
         
         self.model.load(num_recording_timesteps = int(self.paras["spk_rec_steps"]))
+        self._noise_lvl_injecter()
 
-        ## rec spikes from neurons
         var_view = {}
         for pop, var in self.what_to_rec: # getting var directly (more efficient(?))
             var_view[f"{pop}_{var}"] = self.model.neuron_populations[pop].vars[var].view
 
         state_rec_steps = 10 # pull state vars every 10 timesteps (curr every 1 ms)
 
-        ## Preparing protocol
         ors_population = self.model.neuron_populations["or"]
 
         # making sure odor is off
         print(f"Initial state: applying 0.0 concentration to type {odor_slot}")
         set_odor_simple(ors_population, odor_slot, self.odors[0], off, self.hill_exp)
 
-        ## start simulation
         int_t = 0 # init internal counter
         print("starting sim...")
         start = time.time()

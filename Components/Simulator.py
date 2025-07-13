@@ -42,15 +42,15 @@ class Simulator:
         self.sim_settings["noise_levels"] = noiselvls_comp
         self.sim_settings["model_settings"] = self.mod_paras
         self.sim_settings["simulation_analysis_parameters"] = self.an_paras
+        
+        build_plan = ModelBuilder(self.mod_paras)
+        model = build_plan.build()
 
         run = 0
         for lvl in self.noise_lvls:
             run += 1 # or could make it start from 0 to follow python indexing?
 
-            build_plan = ModelBuilder(self.mod_paras)
-            model, noise = build_plan.build(lvl) # also take the noise level in the current model, only to write it in the run setings
-
-            experiment = Experimenter(model, self.exp_paras, self.folder, run, noise, self.spk_rec_steps)
+            experiment = Experimenter(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps)
             data_path = experiment.run(self.exp_1, self.exp_2)
 
             sdf = SDFplotter(data_path, self.an_paras, self.mod_paras)
