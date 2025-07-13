@@ -74,7 +74,7 @@ class SDFplotter:
                     ri = li
                     while ri < len(spike_t) and spike_t[ri] < right:
                         ri += 1
-                    lsdfs_od1.append(make_sdf(spike_t[li:ri], spike_id[li:ri], np.arange(0,n), left-3*sigma_sdf, right-3*sigma_sdf, dt_sdf, sigma_sdf))
+                    lsdfs_od1.append(make_sdf(spike_t[li:ri], spike_id[li:ri], np.arange(0,n), 0, total_t, dt_sdf, sigma_sdf))
                     gsdfs_od1.append(glo_avg(lsdfs_od1[-1], self.nums[pop]))
 
                     target_dict[pop] = gsdfs_od1
@@ -103,8 +103,8 @@ class SDFplotter:
                 ri = li
                 while ri < len(spike_t) and spike_t[ri] < right: # incrementing ri till at the end of the trial time window
                     ri += 1
-                lsdfs_od1.append(make_sdf(spike_t[li:ri], spike_id[li:ri], np.arange(0,n), left-3*sigma_sdf, right-3*sigma_sdf, dt_sdf, sigma_sdf)) # originally it was "left-3*sigma_sdf" and so on for the limits,
-                # changed it because its already done within the make_sdf code itself. could this be a potential issue? need to check!
+                lsdfs_od1.append(make_sdf(spike_t[li:ri], spike_id[li:ri], np.arange(0,n), 0, total_t, dt_sdf, sigma_sdf)) # originally it was "left-3*sigma_sdf" and so on for the limits,
+                # changed it to 0 - total_t because its already done within the make_sdf code itself. could this be a potential issue? need to check!
                 gsdfs_od1.append(glo_avg(lsdfs_od1[-1],self.nums[pop]))
 
                 self.pops_gsdfs_od1[pop] = gsdfs_od1
