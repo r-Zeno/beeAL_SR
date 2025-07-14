@@ -3,7 +3,9 @@
 
         "noiselvl_min": 0.0,
         "noiselvl_max": 4.0,
-        "steps": 2
+        "steps": 2,
+        "sdf": true,
+        "dist": true
 
     },
 
@@ -168,11 +170,11 @@
             "a_rate": 0.1
         },
 
-        "odor1_midpoint": 20,
+        "odor1_midpoint": 100,
         "odor1_sd": 8,
 
         "odor2_midpoint": 120,
-        "odor2_sd": 16,
+        "odor2_sd": 8,
 
         "spk_rec_steps": 1000,
 
@@ -225,6 +227,8 @@
             "pop_number": 800,
 
             "which_metric": ["vp"],
+
+            "cost_vp": 20,
 
             "odors": ["odor_1", "odor_2"]
 

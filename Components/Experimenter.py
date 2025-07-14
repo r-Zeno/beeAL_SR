@@ -179,7 +179,7 @@ class Experimenter:
         timetaken = round(end-start, 2)
         print(f"sim ended. it took {timetaken} s.")
 
-    def _exp_concurrent_od(self, spike_t, spike_id):
+    def _exp_consecutive_od(self, spike_t, spike_id):
 
         exp_folder = self.folder
         base = np.power(10,0.25)
@@ -314,7 +314,7 @@ class Experimenter:
         spike_t, spike_id = self._rec_var_init()
 
         if exp_1:
-            spike_t_exp, spike_id_exp, exp_folder = self._exp_concurrent_od(spike_t, spike_id)
+            spike_t_exp, spike_id_exp, exp_folder = self._exp_consecutive_od(spike_t, spike_id)
             self._data_saver(spike_t_exp, spike_id_exp, exp_folder)
         elif exp_2:
             self._exp_separate_od()

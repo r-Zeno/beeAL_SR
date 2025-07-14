@@ -1,6 +1,8 @@
 import numpy as np
 import os
-from numba import jit
+import time
+from joblib import Parallel, delayed
+from helpers import vp_metric
 
 class DistanceAnalyzer:
 
@@ -8,7 +10,7 @@ class DistanceAnalyzer:
 
         self.path = data_path
         self.paras = an_paras
-
+        self.cost_vp = self.paras["cost_vp"]
         # here dinamically retrieve data paths based on the number of folders, to allow to add more odors later on
         # is it unnecessary?
         odors_paths = {}
@@ -37,7 +39,7 @@ class DistanceAnalyzer:
         print(self.spike_ids)
 
     def _coupler(self):
-        
+
         spikes_pop = []
         for od_trial in range(len(self.spike_ts)):
             
@@ -78,4 +80,24 @@ class DistanceAnalyzer:
                 spikes_coupled[key] = (spikes_idxt["od_1"][key], spikes_idxt["od_2"][key])
         else: raise TypeError("Neuron number for the 2 runs does not match, something went very wrong!")
 
-            
+        return spikes_coupled
+
+    def _analyzer(self, spikes_coupled):
+
+        # running the vp algorithm in parallel across neurons on cpu cores
+        print("Starting parallel computation of VP distance...")
+
+        start = time.time()
+        vp_dist = Parallel(n_jobs=-1)(delayed(vp_metric)(spikes_coupled[n][0],spikes_coupled[n][1],self.cost_vp) for n in spikes_coupled)
+        end = time.time()
+        timetaken = round(end-start, 2)
+        print(f"All distance values computed, it took {timetaken}s")
+        mean_vpdist = np.mean(vp_dist)
+
+        return mean_vpdist
+    
+    def compute_distance(self):
+
+        spikes_coupled = self._coupler()
+        mean_vpdist = self._analyzer(spikes_coupled)
+        return mean_vpdist

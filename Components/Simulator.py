@@ -5,6 +5,7 @@ import numpy as np
 from ModelBuilder import ModelBuilder
 from Experimenter import Experimenter
 from SDFplotter import SDFplotter
+from distance_analyzer import DistanceAnalyzer
 
 class Simulator:
 
@@ -27,6 +28,7 @@ class Simulator:
         self.mod_paras = parameters["model_parameters"]
         self.exp_paras = parameters["experiment_parameters"]
         self.sdf_paras = parameters["analysis_parameters"]["sdf_parameters"]
+        self.dist_paras = parameters["analysis_parameters"]["distance_parameters"]
         self.sim_paras = parameters["simulation_parameters"]
         self.spk_rec_steps = self.mod_paras["spk_rec_steps"] # ugly way to pass model recording steps to the Experimenter
         self.exp_1 = self.exp_paras["experiment_concurrent"]
@@ -46,6 +48,9 @@ class Simulator:
         build_plan = ModelBuilder(self.mod_paras)
         model = build_plan.build()
 
+        if self.sim_paras["dist"]:
+            means_vpdist = []
+
         run = 0
         for lvl in self.noise_lvls:
             run += 1 # or could make it start from 0 to follow python indexing?
@@ -53,8 +58,18 @@ class Simulator:
             experiment = Experimenter(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps)
             data_path = experiment.run(self.exp_1, self.exp_2)
 
-            sdf = SDFplotter(data_path, self.sdf_paras, self.mod_paras)
-            sdf.plot()
+            if self.sim_paras["sdf"]:
+                sdf = SDFplotter(data_path, self.sdf_paras, self.mod_paras)
+                sdf.plot()
+            
+            if self.sim_paras["dist"]:
+                vpdist_init = DistanceAnalyzer(data_path, self.dist_paras)
+                dist_result = vpdist_init.compute_distance()
+                means_vpdist.append(dist_result)
+        
+        if self.sim_paras["dist"]:
+            np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
+            print(f"Saved mean VP distance values per noise level in {self.folder}")
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:
             json.dump(self.sim_settings, fp, indent=4)
