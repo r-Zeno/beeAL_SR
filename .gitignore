@@ -5,3 +5,4 @@ __pycache__/
 /.gitignore~
 sim*/**
 /Components/.DS_Store
+.venv/

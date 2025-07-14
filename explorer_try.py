@@ -1,21 +1,11 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-dist_means = np.load("/Users/zenorossi/beeAL/simulations/sim_20250714_201142/mean_vp_dist_x_noiselvls.npy")
-dist_single = np.load("/Users/zenorossi/beeAL/simulations/sim_20250714_201142/single_vp_dist_values.npy")
+dist_means = np.load("/home/zeno/beeAL_SR/simulations/sim_20250715_000548/mean_vp_dist_x_noiselvls.npy")
 print(dist_means)
 
-plt.hist(dist_single[0])
-plt.show()
+x = dist_means
+y = np.linspace(0,10,1000)
 
-plt.hist(dist_single[1])
-plt.show()
-
-plt.hist(dist_single[2])
-plt.show()
-
-x = [0, 4.5, 9]
-y = [0.27440597, 0.93790259, 0.79402039]
-
-plt.scatter(x, y)
-plt.show()
+plt.scatter(y,x)
+plt.savefig("/home/zeno/beeAL_SR/simulations/sim_20250715_000548/output.jpg")

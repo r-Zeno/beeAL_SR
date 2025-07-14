@@ -1,5 +1,9 @@
 import numpy as np
 import pygenn
+import os
+try:
+    import pygenn.cuda_backend
+except: print("No cuda, GPU will not be used!")
 from pygenn import create_var_ref, init_postsynaptic, init_sparse_connectivity
 from pygenn.genn_model import GeNNModel, create_weight_update_model, create_postsynaptic_model, create_sparse_connect_init_snippet, create_var_init_snippet, init_weight_update
 import time
@@ -15,10 +19,15 @@ class ModelBuilder:
     """
     def __init__(self, paras:dict, dt=0.1):
 
+        os.environ['CUDA_PATH'] = '/usr/local/cuda'
+        try:
+            pygenn.genn_model.backend_modules["CUDA"] = pygenn.cuda_backend
+        except: print("Warning: could not set CUDA backends")
+
         self.paras = paras
         self.dt = dt
 
-        self.model = GeNNModel("double", "beeAL")
+        self.model = GeNNModel("double", "beeAL", backend="CUDA")
         self.model.dt = dt
 
         self.ors = None
@@ -37,7 +46,7 @@ class ModelBuilder:
             "ln2ln": (self._ln2ln, "lns") 
         }
 
-        self.neuron_pops = ["ors","orns","pns","lns","elns"]
+        self.neuron_pops = ["or","orn","pn","ln","eln"]
 
     def _neuron_groups_init(self, ors=True, orns=True, spike_orn=True, pns=True, spike_pn=True, lns=True, spike_ln=True, elns=False, spike_eln=False):
 
