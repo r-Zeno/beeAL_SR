@@ -2,9 +2,9 @@
     "simulation_parameters": {
 
         "noiselvl_min": 0.0,
-        "noiselvl_max": 4.0,
-        "steps": 2,
-        "sdf": true,
+        "noiselvl_max": 9.0,
+        "steps": 3,
+        "sdf": false,
         "dist": true
 
     },
@@ -228,7 +228,7 @@
 
             "which_metric": ["vp"],
 
-            "cost_vp": 20,
+            "cost_vp": 0.1,
 
             "odors": ["odor_1", "odor_2"]
 

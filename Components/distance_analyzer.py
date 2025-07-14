@@ -1,6 +1,9 @@
 import numpy as np
 import os
 import time
+import numba
+from numba import types
+from numba.typed import dictobject
 from joblib import Parallel, delayed
 from helpers import vp_metric
 
@@ -94,10 +97,13 @@ class DistanceAnalyzer:
         print(f"All distance values computed, it took {timetaken}s")
         mean_vpdist = np.mean(vp_dist)
 
-        return mean_vpdist
+        return mean_vpdist, vp_dist # for debugging
     
+    #def _dict_to_typed_dict_converter(self, dict2convert):
+
+
     def compute_distance(self):
 
         spikes_coupled = self._coupler()
-        mean_vpdist = self._analyzer(spikes_coupled)
-        return mean_vpdist
+        mean_vpdist, vp_dist = self._analyzer(spikes_coupled)
+        return mean_vpdist, vp_dist

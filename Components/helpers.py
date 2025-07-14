@@ -124,7 +124,7 @@ def glo_avg(sdf: np.ndarray, n):
         gsdf[:,i]= np.mean(sdf[:,n*i:n*(i+1)],axis=1)
     return gsdf
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def vp_metric(train_1, train_2, cost):
     """
     Computes the Victor-Purpura distance, given a pair of spike train timings and a cost (q*Dt)
@@ -138,8 +138,10 @@ def vp_metric(train_1, train_2, cost):
     nspt_i = len(s_train_i)
     nspt_j = len(s_train_j)
 
-    scr = np.zeros((nspt_i + 1, nspt_j +1))
+    if nspt_i == 0 and nspt_j == 0: # otherwise the normalized distance would divide by 0
+        return 0.0
 
+    scr = np.zeros((nspt_i + 1, nspt_j +1))
     scr[:,0] = range(0, nspt_i + 1)
     scr[0,:] = range(0, nspt_j + 1)
 
@@ -151,4 +153,7 @@ def vp_metric(train_1, train_2, cost):
 
                 scr[i,j] = min(scr[i-1,j]+1, scr[i,j-1]+1, scr[i-1, j-1]+ q * abs(s_train_i[i-1] - s_train_j[j-1]))
 
-    return scr[nspt_i, nspt_j]
+    raw_dist = scr[nspt_i, nspt_j]
+    norm_dist = raw_dist / (nspt_i + nspt_j)
+
+    return norm_dist

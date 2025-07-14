@@ -49,6 +49,7 @@ class Simulator:
         model = build_plan.build()
 
         if self.sim_paras["dist"]:
+            single_dist = [] # for debugging
             means_vpdist = []
 
         run = 0
@@ -64,11 +65,13 @@ class Simulator:
             
             if self.sim_paras["dist"]:
                 vpdist_init = DistanceAnalyzer(data_path, self.dist_paras)
-                dist_result = vpdist_init.compute_distance()
+                dist_result, dist_single = vpdist_init.compute_distance()
+                single_dist.append(dist_single)
                 means_vpdist.append(dist_result)
         
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
+            np.save(os.path.join(self.folder, "single_vp_dist_values.npy"), single_dist)
             print(f"Saved mean VP distance values per noise level in {self.folder}")
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:
