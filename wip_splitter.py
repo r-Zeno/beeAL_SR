@@ -54,3 +54,4 @@ if len(spikes_txid_sorted) == len(spikes_txid_sorted2):
 
         key = int(i)
         spikes_2ns[key] = spikes_txid_sorted[key], spikes_txid_sorted2[key]
+        

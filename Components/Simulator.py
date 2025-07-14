@@ -26,7 +26,7 @@ class Simulator:
 
         self.mod_paras = parameters["model_parameters"]
         self.exp_paras = parameters["experiment_parameters"]
-        self.an_paras = parameters["analysis_parameters"]
+        self.sdf_paras = parameters["analysis_parameters"]["sdf_parameters"]
         self.sim_paras = parameters["simulation_parameters"]
         self.spk_rec_steps = self.mod_paras["spk_rec_steps"] # ugly way to pass model recording steps to the Experimenter
         self.exp_1 = self.exp_paras["experiment_concurrent"]
@@ -41,7 +41,7 @@ class Simulator:
 
         self.sim_settings["noise_levels"] = noiselvls_comp
         self.sim_settings["model_settings"] = self.mod_paras
-        self.sim_settings["simulation_analysis_parameters"] = self.an_paras
+        self.sim_settings["simulation_analysis_parameters"] = self.sdf_paras
         
         build_plan = ModelBuilder(self.mod_paras)
         model = build_plan.build()
@@ -53,7 +53,7 @@ class Simulator:
             experiment = Experimenter(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps)
             data_path = experiment.run(self.exp_1, self.exp_2)
 
-            sdf = SDFplotter(data_path, self.an_paras, self.mod_paras)
+            sdf = SDFplotter(data_path, self.sdf_paras, self.mod_paras)
             sdf.plot()
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:
