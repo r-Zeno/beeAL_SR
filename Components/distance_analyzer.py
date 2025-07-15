@@ -99,9 +99,6 @@ class DistanceAnalyzer:
 
         return mean_vpdist, vp_dist # for debugging
     
-    #def _dict_to_typed_dict_converter(self, dict2convert):
-
-
     def compute_distance(self):
 
         spikes_coupled = self._coupler()

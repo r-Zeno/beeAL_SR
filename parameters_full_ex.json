@@ -2,8 +2,8 @@
     "simulation_parameters": {
 
         "noiselvl_min": 0.0,
-        "noiselvl_max": 10.0,
-        "steps": 1000,
+        "noiselvl_max": 0.0,
+        "steps": 1,
         "sdf": false,
         "dist": true
 
@@ -170,7 +170,7 @@
             "a_rate": 0.1
         },
 
-        "odor1_midpoint": 100,
+        "odor1_midpoint": 115,
         "odor1_sd": 8,
 
         "odor2_midpoint": 120,
@@ -230,7 +230,11 @@
 
             "cost_vp": 0.1,
 
-            "odors": ["odor_1", "odor_2"]
+            "odors": ["odor_1", "odor_2"],
+
+            "start_stim": 1000.0,
+
+            "end_stim": 4000.0
 
         }
     }

@@ -19,15 +19,15 @@ class ModelBuilder:
     """
     def __init__(self, paras:dict, dt=0.1):
 
-        os.environ['CUDA_PATH'] = '/usr/local/cuda'
         try:
+            os.environ['CUDA_PATH'] = '/usr/local/cuda'
             pygenn.genn_model.backend_modules["CUDA"] = pygenn.cuda_backend
         except: print("Warning: could not set CUDA backends")
 
         self.paras = paras
         self.dt = dt
 
-        self.model = GeNNModel("double", "beeAL", backend="CUDA")
+        self.model = GeNNModel("double", "beeAL") # for linux add , backend="CUDA"
         self.model.dt = dt
 
         self.ors = None

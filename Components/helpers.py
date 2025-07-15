@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from numba import jit
 
 def gauss_odor(n_glo: int, m: float, sd_b: float, a_rate: float, A: float=1.0, clip: float=0.0, m_a: float=0.25, sd_a: float=0.0, min_a: float=0.01, max_a: float=0.05, rand_a: bool=False ,hom_a: bool=True) -> np.array:
@@ -157,3 +158,86 @@ def vp_metric(train_1, train_2, cost):
     norm_dist = raw_dist / (nspt_i + nspt_j)
 
     return norm_dist
+
+def neuron_superset(threshold, paths, paras, pad:bool):
+
+    if pad:
+        padding = 200
+    else: padding = 0
+
+    runs_baseline = {}
+    runs_stimulation = {}
+    for run in paths:
+
+        run_name = os.path.basename(run)
+        curr_run_baseline = {}
+        curr_run_stimulation = {}
+
+        for odor in paras["odors"]:
+
+            curr_odor_baseline = {}
+            curr_odor_stimulation = {}
+
+            for pop in paras["which_pop"]: # useless for now since only 1 pop, included for scalability
+
+                curr_spike_ts = np.load(os.path.join(run, odor, f"{pop}_spike_t.npy"))
+                curr_spike_ids = np.load(os.path.join(run, odor, f"{pop}_spike_id.npy"))
+                curr_pop_idxt = np.stack((curr_spike_ids, curr_spike_ts), 1)
+                curr_odor_baseline[pop] = {}
+                curr_odor_stimulation[pop] = {}
+
+                for (id, t) in curr_pop_idxt:
+                    
+                    if t < paras["start_stim"]:
+
+                        if id not in curr_odor_baseline[pop]:
+                            curr_odor_baseline[pop][id] = []
+
+                        curr_odor_baseline[pop][id].append(t)
+
+                    elif paras["start_stim"] < t < paras["end_stim"]+padding:
+
+                        if id not in curr_odor_stimulation[pop]:
+                            curr_odor_stimulation[pop][id] = []
+
+                        curr_odor_stimulation[pop][id].append(t)
+                    else: pass
+
+            curr_run_baseline[odor] = curr_odor_baseline
+            curr_run_stimulation[odor] = curr_odor_stimulation
+
+        runs_baseline[run_name] = curr_run_baseline
+        runs_stimulation[run_name] = curr_run_stimulation
+
+    spks_split = {}
+    spks_split["baseline"] = runs_baseline
+    spks_split["stimulation"] = runs_stimulation
+
+    for condition, runs in spks_split.items():
+        for run_name, odors in runs.items():
+            for odor, pops in odors.items():
+                for pop, neuron_id in pops.items():
+                    for n in neuron_id.items():
+                        for i in range(paras["pop_number"]):
+                            n_id_exist = n.get(i)
+                            if n_id_exist is None:
+                                n[i] = []
+                        
+                        n[i] = dict(sorted(n[i].items()))
+
+
+
+    
+        
+            
+
+
+
+
+
+
+
+
+
+        
+

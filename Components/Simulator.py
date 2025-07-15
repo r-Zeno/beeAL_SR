@@ -6,6 +6,7 @@ from ModelBuilder import ModelBuilder
 from Experimenter import Experimenter
 from SDFplotter import SDFplotter
 from distance_analyzer import DistanceAnalyzer
+from helpers import neuron_superset
 
 class Simulator:
 
@@ -39,6 +40,7 @@ class Simulator:
     def run(self):
         
         noiselvls_comp = self.noise_lvls.tolist() # converting the numpy array into a list to be inserted in dict
+        start = time.time()
         print(f"starting simulations at noise levels: {noiselvls_comp}")
 
         self.sim_settings["noise_levels"] = noiselvls_comp
@@ -52,22 +54,36 @@ class Simulator:
             single_dist = [] # for debugging
             means_vpdist = []
 
+        data_paths = []
         run = 0
         for lvl in self.noise_lvls:
             run += 1 # or could make it start from 0 to follow python indexing?
 
             experiment = Experimenter(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps)
             data_path = experiment.run(self.exp_1, self.exp_2)
+            data_paths.append(data_path)
+        end = time.time()
+        timetaken = round(end - start,2)
+        print(f"Simulation ended, it took {timetaken}")
 
-            if self.sim_paras["sdf"]:
-                sdf = SDFplotter(data_path, self.sdf_paras, self.mod_paras)
+        nuerons2analyze = neuron_superset(threshold, data_paths)
+
+        print("Starting analysis...")
+        start = time.time()
+        if self.sim_paras["sdf"]:
+            for path in data_paths:
+                sdf = SDFplotter(path, self.sdf_paras, self.mod_paras)
                 sdf.plot()
-            
-            if self.sim_paras["dist"]:
-                vpdist_init = DistanceAnalyzer(data_path, self.dist_paras)
+        
+        if self.sim_paras["dist"]:
+            for path in data_paths:
+                vpdist_init = DistanceAnalyzer(path, self.dist_paras)
                 dist_result, dist_single = vpdist_init.compute_distance()
                 single_dist.append(dist_single)
                 means_vpdist.append(dist_result)
+        end = time.time()
+        timetaken = round(end - start,2)
+        print(f"Simulation ended, it took {timetaken}")
         
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
