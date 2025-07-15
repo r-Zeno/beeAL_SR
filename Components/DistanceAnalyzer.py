@@ -88,6 +88,7 @@ class DistanceAnalyzer:
         for idx in self.neurons_idx:
             spikes_coupled_corr[idx] = spikes_coupled[idx]
 
+        print(f"analyzing distance for {len(spikes_coupled_corr)} neurons")
         return spikes_coupled_corr
 
     def _analyzer(self, spikes_coupled):

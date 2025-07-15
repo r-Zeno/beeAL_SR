@@ -70,7 +70,8 @@ def fire_rate(data:dict, paras:dict):
     
     baseline_t = paras["start_stim"] / 1000.0 # from ms to s (rate in Hz)
     stimulation_t = (paras["end_stim"] - paras["start_stim"]) / 1000.0
-
+    print(f"DEBUG: Baseline Duration = {baseline_t}s")
+    print(f"DEBUG: Stimulation Duration = {stimulation_t}s")
     rates = {}
     for state, runs in data.items():
 
