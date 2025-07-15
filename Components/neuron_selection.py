@@ -29,20 +29,20 @@ def neuron_spikes_assemble(paths, paras, pad:bool):
                 curr_odor_stimulation[pop] = {}
 
                 for (id, t) in curr_pop_idxt:
-                    
+                    key = int(id)
                     if t < paras["start_stim"]:
 
-                        if id not in curr_odor_baseline[pop]:
-                            curr_odor_baseline[pop][id] = []
+                        if key not in curr_odor_baseline[pop]:
+                            curr_odor_baseline[pop][key] = []
 
-                        curr_odor_baseline[pop][id].append(t)
+                        curr_odor_baseline[pop][key].append(t)
 
                     elif paras["start_stim"] < t < paras["end_stim"]+padding:
 
-                        if id not in curr_odor_stimulation[pop]:
-                            curr_odor_stimulation[pop][id] = []
+                        if key not in curr_odor_stimulation[pop]:
+                            curr_odor_stimulation[pop][key] = []
 
-                        curr_odor_stimulation[pop][id].append(t)
+                        curr_odor_stimulation[pop][key].append(t)
                     else: pass
 
                 final_spk_baseline = {}
