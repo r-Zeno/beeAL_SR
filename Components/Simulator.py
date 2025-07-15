@@ -5,8 +5,8 @@ import numpy as np
 from ModelBuilder import ModelBuilder
 from Experimenter import Experimenter
 from SDFplotter import SDFplotter
-from distance_analyzer import DistanceAnalyzer
-from helpers import neuron_superset
+from DistanceAnalyzer import DistanceAnalyzer
+from neuron_selection import *
 
 class Simulator:
 
@@ -66,7 +66,9 @@ class Simulator:
         timetaken = round(end - start,2)
         print(f"Simulation ended, it took {timetaken}")
 
-        nuerons2analyze = neuron_superset(threshold, data_paths)
+        spks_split = neuron_spikes_assemble(data_paths, self.dist_paras, pad=False)
+        rates = fire_rate(spks_split, self.dist_paras)
+        neurons2analyze, _ = select_neurons(rates, self.dist_paras)
 
         print("Starting analysis...")
         start = time.time()
@@ -77,7 +79,7 @@ class Simulator:
         
         if self.sim_paras["dist"]:
             for path in data_paths:
-                vpdist_init = DistanceAnalyzer(path, self.dist_paras)
+                vpdist_init = DistanceAnalyzer(path, self.dist_paras, neurons2analyze)
                 dist_result, dist_single = vpdist_init.compute_distance()
                 single_dist.append(dist_single)
                 means_vpdist.append(dist_result)

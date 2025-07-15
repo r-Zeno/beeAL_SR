@@ -234,7 +234,9 @@
 
             "start_stim": 1000.0,
 
-            "end_stim": 4000.0
+            "end_stim": 4000.0,
+
+            "threshold": 2.5
 
         }
     }

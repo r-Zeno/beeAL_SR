@@ -27,7 +27,7 @@ class ModelBuilder:
         self.paras = paras
         self.dt = dt
 
-        self.model = GeNNModel("double", "beeAL") # for linux add , backend="CUDA"
+        self.model = GeNNModel("double", "beeAL", backend="CUDA") # for linux add , backend="CUDA"
         self.model.dt = dt
 
         self.ors = None

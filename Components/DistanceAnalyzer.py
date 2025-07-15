@@ -9,10 +9,11 @@ from helpers import vp_metric
 
 class DistanceAnalyzer:
 
-    def __init__(self, data_path, an_paras:dict):
+    def __init__(self, data_path, an_paras:dict, neurons_idx):
 
         self.path = data_path
         self.paras = an_paras
+        self.neurons_idx = neurons_idx
         self.cost_vp = self.paras["cost_vp"]
         # here dinamically retrieve data paths based on the number of folders, to allow to add more odors later on
         # is it unnecessary?
@@ -83,7 +84,11 @@ class DistanceAnalyzer:
                 spikes_coupled[key] = (spikes_idxt["od_1"][key], spikes_idxt["od_2"][key])
         else: raise TypeError("Neuron number for the 2 runs does not match, something went very wrong!")
 
-        return spikes_coupled
+        spikes_coupled_corr = {}
+        for idx in self.neurons_idx:
+            spikes_coupled_corr[idx] = spikes_coupled[idx]
+
+        return spikes_coupled_corr
 
     def _analyzer(self, spikes_coupled):
 
