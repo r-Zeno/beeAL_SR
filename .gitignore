@@ -6,3 +6,5 @@ __pycache__/
 sim*/**
 /Components/.DS_Store
 .venv/
+Dockerfile
+.dockerignore
