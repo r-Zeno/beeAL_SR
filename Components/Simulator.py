@@ -7,6 +7,7 @@ from Experimenter import Experimenter
 from SDFplotter import SDFplotter
 from DistanceAnalyzer import DistanceAnalyzer
 from neuron_selection import *
+from helpers import exploratory_plot
 
 class Simulator:
 
@@ -86,6 +87,9 @@ class Simulator:
         end = time.time()
         timetaken = round(end - start,2)
         print(f"Simulation ended, it took {timetaken}")
+
+        if self.sim_paras["dist"]:
+            exploratory_plot(self.folder, means_vpdist, self.sim_paras, self.dist_paras)
         
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)

@@ -8,3 +8,4 @@ sim*/**
 .venv/
 Dockerfile
 .dockerignore
+parameters.json

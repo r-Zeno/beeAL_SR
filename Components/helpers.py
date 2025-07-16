@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from matplotlib import pyplot as plt
 from numba import jit
 
 def gauss_odor(n_glo: int, m: float, sd_b: float, a_rate: float, A: float=1.0, clip: float=0.0, m_a: float=0.25, sd_a: float=0.0, min_a: float=0.01, max_a: float=0.05, rand_a: bool=False ,hom_a: bool=True) -> np.array:
@@ -158,3 +159,11 @@ def vp_metric(train_1, train_2, cost):
     norm_dist = raw_dist / (nspt_i + nspt_j)
 
     return norm_dist
+
+def exploratory_plot(path, data, paras_sim, paras_dist):
+
+    y = data
+    x = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], paras_sim["steps"])
+    plt.scatter(x,y)
+    plt.savefig(os.path.join(path, f"exp_plot_t{str(paras_dist["threshold"])}.png"))
+    plt.close()
