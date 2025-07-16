@@ -4,7 +4,8 @@ REMOTE_USER="zeno"
 REMOTE_HOST="100.71.200.87"
 REMOTE_PROJECT_PATH="beeAL_SR"
 LOCAL_PARAMS_FILE="parameters.json"
-LOCAL_OUTPUT_DIR="simulation_results"
+DATE_TAG=$(date +"sim_%Y%m%d_%H%M%S")
+LOCAL_OUTPUT_DIR="$DATE_TAG"
 
 if [ ! -f "$LOCAL_PARAMS_FILE" ]; then
     echo "Error: Parameters file not found at '$LOCAL_PARAMS_FILE'"
