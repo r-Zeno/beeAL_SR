@@ -20,7 +20,7 @@ docker run \
   --gpus all \
   --rm \
   -v "${EVAL_INPUT_DIR}/parameters.json:/app/parameters.json" \
-  -v "${EVAL_OUTPUT_DIR}:/app/simulations" \
+  -v "${EVAL_OUTPUT_DIR}:/simulations" \
   beeal-simulator:latest
 echo "Simulations Finished"
 
