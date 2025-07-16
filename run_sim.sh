@@ -4,6 +4,10 @@ INPUT_DIR="~/beeAL_sim/input"
 OUTPUT_DIR="~/beeAL_sim/simulations_output"
 LATEST_DIR="~/beeAL_sim/curr_results"
 
+mkdir -p "$(eval echo "$INPUT_DIR")"
+mkdir -p "$(eval echo "$OUTPUT_DIR")"
+mkdir -p "$(eval echo "$LATEST_DIR")"
+
 EVAL_INPUT_DIR=$(eval echo "$INPUT_DIR")
 EVAL_OUTPUT_DIR=$(eval echo "$OUTPUT_DIR")
 EVAL_LATEST_DIR=$(eval echo "$LATEST_DIR")
