@@ -2,10 +2,9 @@ import numpy as np
 import os
 import time
 import numba
-from numba import types
-from numba.typed import dictobject
+from numba.typed import List
 from joblib import Parallel, delayed
-from helpers import vp_metric
+from helpers import data_prep4numba_distance
 
 class DistanceAnalyzer:
 
@@ -95,9 +94,8 @@ class DistanceAnalyzer:
 
         # running the vp algorithm in parallel across neurons on cpu cores
         print("Starting parallel computation of VP distance...")
-
         start = time.time()
-        vp_dist = Parallel(n_jobs=-1)(delayed(vp_metric)(spikes_coupled[n][0],spikes_coupled[n][1],self.cost_vp) for n in spikes_coupled)
+        vp_dist = Parallel(n_jobs=-1)(delayed(data_prep4numba_distance)(spikes_coupled[n][0],spikes_coupled[n][1],self.cost_vp) for n in spikes_coupled)
         end = time.time()
         timetaken = round(end-start, 2)
         print(f"All distance values computed, it took {timetaken}s")
