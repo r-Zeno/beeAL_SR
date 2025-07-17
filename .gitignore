@@ -6,7 +6,6 @@ __pycache__/
 sim*/**
 /Components/.DS_Store
 .venv/
-Dockerfile
 .dockerignore
 parameters.json
 remote_run_sim.sh
