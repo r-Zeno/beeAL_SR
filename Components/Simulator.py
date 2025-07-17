@@ -93,7 +93,7 @@ class Simulator:
         
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
-            # np.save(os.path.join(self.folder, "single_vp_dist_values.npy"), single_dist)
+            np.save(os.path.join(self.folder, "single_vp_dist_values.npy"), single_dist)
             np.save(os.path.join(self.folder, "neurons_taken_distanalysis.npy"), decision_matrix)
             print(f"Saved mean VP distance values per noise level in {self.folder}")
 

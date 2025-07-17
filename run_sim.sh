@@ -32,6 +32,8 @@ if [ -d "$LATEST_SIM_DIR" ]; then
 
   cp "$LATEST_SIM_DIR"/mean_vp_dist_x_noiselvls.npy "${EVAL_LATEST_DIR}/meanvp_result.npy"
 
+  cp "$LATEST_SIM_DIR"/single_vp_dist_values.npy "${EVAL_LATEST_DIR}/singlevp_result.npy"
+
   cp "$LATEST_SIM_DIR"/neurons_taken_distanalysis.npy "${EVAL_LATEST_DIR}/selected_neurons.npy"
 
   cp "$LATEST_SIM_DIR"/sim_settings.json "${EVAL_LATEST_DIR}/settings.json"
