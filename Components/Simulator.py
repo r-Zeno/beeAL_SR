@@ -6,7 +6,7 @@ from ModelBuilder import ModelBuilder
 from Experimenter import Experimenter
 from SDFplotter import SDFplotter
 from DistanceAnalyzer import DistanceAnalyzer
-from neuron_selection import *
+from neuron_selection import NeuronSelector
 from helpers import exploratory_plot
 
 class Simulator:
@@ -67,9 +67,8 @@ class Simulator:
         timetaken_sim = round(end - start,2)
         print(f"Simulations ended, it took {timetaken_sim}")
 
-        spks_split = neuron_spikes_assemble(data_paths, self.dist_paras, pad=False)
-        rates = fire_rate(spks_split, self.dist_paras)
-        neurons2analyze, _ = select_neurons(rates, self.dist_paras)
+        selector_init = NeuronSelector(data_paths, self.dist_paras, self.sim_paras["only0noise"], pad=False,)
+        neurons2analyze = selector_init.select()
 
         print("Starting analysis...")
         start = time.time()
