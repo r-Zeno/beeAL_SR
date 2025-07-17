@@ -129,3 +129,29 @@ def select_neurons(rates:dict, paras:dict):
     neurons2analyze = responsive_ns.tolist()
 
     return neurons2analyze, decision_matrix
+
+def select_neurons_0noise(rates:dict, paras:dict):
+
+    n_neurons = paras["pop_number"]
+    odors = paras["odors"]
+    pops = paras["which_pop"]
+    run_idx = 0
+
+    decision_matrix = np.zeros((n_neurons, run_idx), dtype=bool)
+    
+    for odor in odors:
+        for pop in pops:
+            for neuron in range(n_neurons):
+
+                curr_baseline_rate = rates["baseline"][run_idx][odor][pop][neuron]
+                curr_stimulation_rate = rates["stimulation"][run_idx][odor][pop][neuron]
+
+                if curr_stimulation_rate > curr_baseline_rate: # at 0 noise only change if 
+
+                    idx = run_idx[run_idx]
+                    decision_matrix[neuron, idx] = True
+
+    responsive_ns = np.where(np.any(decision_matrix, axis=1))[0]
+    neurons2analyze = responsive_ns.tolist()
+
+    return neurons2analyze, decision_matrix

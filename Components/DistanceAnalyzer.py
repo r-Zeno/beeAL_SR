@@ -1,8 +1,6 @@
 import numpy as np
 import os
 import time
-import numba
-from numba.typed import List
 from joblib import Parallel, delayed
 from helpers import data_prep4numba_distance
 

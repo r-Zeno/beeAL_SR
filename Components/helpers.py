@@ -176,3 +176,4 @@ def exploratory_plot(path, data, paras_sim, paras_dist):
     plt.scatter(x,y)
     plt.savefig(os.path.join(path, f"exp_plot_t{str(paras_dist["threshold"])}.png"))
     plt.close()
+    

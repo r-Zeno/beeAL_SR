@@ -64,8 +64,8 @@ class Simulator:
             data_path = experiment.run(self.exp_1, self.exp_2)
             data_paths.append(data_path)
         end = time.time()
-        timetaken = round(end - start,2)
-        print(f"Simulation ended, it took {timetaken}")
+        timetaken_sim = round(end - start,2)
+        print(f"Simulations ended, it took {timetaken_sim}")
 
         spks_split = neuron_spikes_assemble(data_paths, self.dist_paras, pad=False)
         rates = fire_rate(spks_split, self.dist_paras)
@@ -85,8 +85,8 @@ class Simulator:
                 single_dist.append(dist_single)
                 means_vpdist.append(dist_result)
         end = time.time()
-        timetaken = round(end - start,2)
-        print(f"Simulation ended, it took {timetaken}")
+        timetaken_an = round(end - start,2)
+        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s, time spent analyzing: {timetaken_an}")
 
         if self.sim_paras["dist"]:
             exploratory_plot(self.folder, means_vpdist, self.sim_paras, self.dist_paras)
