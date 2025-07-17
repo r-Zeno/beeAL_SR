@@ -147,7 +147,13 @@ class NeuronSelector:
         pops = self.paras["which_pop"]
         run_idx = "run_0" # assuming that the first run is at 0 noise
 
-        decision_vector = np.zeros(n_neurons, dtype=bool)
+        if isexclusive:
+            n_odors = len(odors)
+            odor_map = {}
+            for i, odor in enumerate(odors):
+                odor_map[odor] = i
+            decision_vector = np.zeros((n_neurons, n_odors), dtype=bool)
+        else: decision_vector = np.zeros(n_neurons, dtype=bool)
         
         for odor in odors:
             for pop in pops:
@@ -158,7 +164,11 @@ class NeuronSelector:
 
                     if curr_stimulation_rate > (curr_baseline_rate + self.paras["threshold_0noise"]): # at 0 noise only change if touched by odor
 
-                        decision_vector[neuron] = True
+                        if isexclusive:
+                            odor_idx = odor_map[odor]
+                            decision_vector[neuron, odor_idx] = True
+                        else:
+                            decision_vector[neuron] = True
 
         if isexclusive:
             responsive_idx = np.all(decision_vector, 1)
