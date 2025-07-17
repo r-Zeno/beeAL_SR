@@ -140,7 +140,7 @@ class NeuronSelector:
 
         return neurons2analyze, decision_matrix
 
-    def _select_neurons_0noise(self, rates:dict):
+    def _select_neurons_0noise(self, rates:dict, isexclusive:bool):
 
         n_neurons = self.paras["pop_number"]
         odors = self.paras["odors"]
@@ -160,7 +160,11 @@ class NeuronSelector:
 
                         decision_vector[neuron] = True
 
-        responsive_ns = np.where(decision_vector)[0]
+        if isexclusive:
+            responsive_idx = np.all(decision_vector, 1)
+        else: responsive_idx = decision_vector
+
+        responsive_ns = np.where(responsive_idx)
         neurons2analyze = responsive_ns.tolist()
 
         return neurons2analyze, decision_vector
@@ -171,7 +175,8 @@ class NeuronSelector:
         rates = self._fire_rate(spks_split)
 
         if self.only0noise:
-            neurons2analyze, decision_matrix = self._select_neurons_0noise(rates)
+            neurons2analyze, decision_matrix = self._select_neurons_0noise(rates, self.paras["isexclusive"])
         else: neurons2analyze, decision_matrix = self._select_neurons(rates)
 
         return neurons2analyze, decision_matrix
+    
