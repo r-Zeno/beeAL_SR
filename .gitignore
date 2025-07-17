@@ -2,10 +2,11 @@ beeAL_CODE/
 __pycache__/
 .DS_Store
 *.json~
-/.gitignore~
+.gitignore~
 sim*/**
 /Components/.DS_Store
 .venv/
 Dockerfile
 .dockerignore
 parameters.json
+remote_run_sim.sh
