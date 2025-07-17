@@ -6,7 +6,7 @@ from ModelBuilder import ModelBuilder
 from Experimenter import Experimenter
 from SDFplotter import SDFplotter
 from DistanceAnalyzer import DistanceAnalyzer
-from neuron_selection import NeuronSelector
+from NeuronSelector import NeuronSelector
 from helpers import exploratory_plot
 
 class Simulator:
