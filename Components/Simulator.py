@@ -58,17 +58,18 @@ class Simulator:
         data_paths = []
         run = 0
         for lvl in self.noise_lvls:
-            run += 1 # or could make it start from 0 to follow python indexing?
 
             experiment = Experimenter(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps)
             data_path = experiment.run(self.exp_1, self.exp_2)
             data_paths.append(data_path)
+            run += 1
+
         end = time.time()
         timetaken_sim = round(end - start,2)
         print(f"Simulations ended, it took {timetaken_sim}")
 
         selector_init = NeuronSelector(data_paths, self.dist_paras, self.sim_paras["only0noise"], pad=False,)
-        neurons2analyze = selector_init.select()
+        neurons2analyze, decision_matrix = selector_init.select()
 
         print("Starting analysis...")
         start = time.time()
@@ -93,6 +94,7 @@ class Simulator:
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
             # np.save(os.path.join(self.folder, "single_vp_dist_values.npy"), single_dist)
+            np.save(os.path.join(self.folder, "neurons_taken_distanalysis.npy"), decision_matrix)
             print(f"Saved mean VP distance values per noise level in {self.folder}")
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:

@@ -145,7 +145,7 @@ class NeuronSelector:
         n_neurons = self.paras["pop_number"]
         odors = self.paras["odors"]
         pops = self.paras["which_pop"]
-        run_idx = 0 # assuming that the first run is at 0 noise
+        run_idx = "run_0" # assuming that the first run is at 0 noise
 
         decision_vector = np.zeros(n_neurons, dtype=bool)
         
@@ -160,7 +160,7 @@ class NeuronSelector:
 
                         decision_vector[neuron] = True
 
-        responsive_ns = np.where(np.any(decision_vector))
+        responsive_ns = np.where(decision_vector)[0]
         neurons2analyze = responsive_ns.tolist()
 
         return neurons2analyze, decision_vector
