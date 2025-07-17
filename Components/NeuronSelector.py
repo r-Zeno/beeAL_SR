@@ -171,10 +171,10 @@ class NeuronSelector:
                             decision_vector[neuron] = True
 
         if isexclusive:
-            responsive_idx = np.all(decision_vector, 1)
+            responsive_idx = np.all(decision_vector, 1) # taking only neurons that where responsive (at 0 noise) to both odors
         else: responsive_idx = decision_vector
 
-        responsive_ns = np.where(responsive_idx)
+        responsive_ns = np.where(responsive_idx)[0]
         neurons2analyze = responsive_ns.tolist()
 
         return neurons2analyze, decision_vector
