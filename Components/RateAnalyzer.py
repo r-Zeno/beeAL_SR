@@ -31,7 +31,9 @@ class RateAnalyzer:
                         curr_base_rate = self.rates["baseline"][run][odor][pop][neuron]
                         curr_stim_rate = self.rates["stimulation"][run][odor][pop][neuron]
                         curr_delta = abs(curr_base_rate - curr_stim_rate)
-                        curr_rel_delta = abs((curr_stim_rate - curr_base_rate)/curr_base_rate)
+                        if curr_base_rate == 0 and curr_stim_rate == 0:
+                            curr_rel_delta = 0.0
+                        else: curr_rel_delta = (curr_stim_rate - curr_base_rate)/(curr_stim_rate + curr_base_rate)
 
                         idx = run_idx[run]
                         rate_delta[neuron, idx] = curr_delta
