@@ -11,13 +11,13 @@ from helpers import exploratory_plot
 
 class Simulator:
 
-    def __init__(self, parameters:str):
+    def __init__(self, parameters_path:str):
 
-        self.paras_path = parameters
+        self.paras_path = parameters_path
         self.sim_settings = dict()
 
         with open(self.paras_path) as f:
-            parameters = json.load(f)
+            self.parameters = json.load(f)
         
         current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         simdirname = "simulations"
@@ -27,11 +27,11 @@ class Simulator:
         self.folder = os.path.join(current_dir, dirname)
         os.makedirs(self.folder)
 
-        self.mod_paras = parameters["model_parameters"]
-        self.exp_paras = parameters["experiment_parameters"]
-        self.sdf_paras = parameters["analysis_parameters"]["sdf_parameters"]
-        self.dist_paras = parameters["analysis_parameters"]["distance_parameters"]
-        self.sim_paras = parameters["simulation_parameters"]
+        self.mod_paras = self.parameters["model_parameters"]
+        self.exp_paras = self.parameters["experiment_parameters"]
+        self.sdf_paras = self.parameters["analysis_parameters"]["sdf_parameters"]
+        self.dist_paras = self.parameters["analysis_parameters"]["distance_parameters"]
+        self.sim_paras = self.parameters["simulation_parameters"]
         self.spk_rec_steps = self.mod_paras["spk_rec_steps"] # ugly way to pass model recording steps to the Experimenter
         self.exp_1 = self.exp_paras["experiment_concurrent"]
         self.exp_2 = self.exp_paras["experiment_separate"]
@@ -98,4 +98,4 @@ class Simulator:
             print(f"Saved mean VP distance values per noise level in {self.folder}")
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:
-            json.dump(self.sim_settings, fp, indent=4)
+            json.dump(self.parameters, fp, indent=4)
