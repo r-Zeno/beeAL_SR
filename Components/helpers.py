@@ -81,7 +81,6 @@ def set_odor_simple(ors, slot, odor, con, hill):
 
     for name in vars_names:
         ors.vars[name].push_to_device()
-        print(f"Pushed {name} to ors to device.")
 
 def make_sdf(sT, sID, allID, t0, tmax, dt, sigma):
     """"
@@ -182,7 +181,7 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
 
     sel_ns = []
     for i in range(len(selected_neurons)):
-        if selected_neurons[i]:
+        if any(selected_neurons[i]): # ok only if not exclusive selection in NeuronSelector! will fix this
             sel_ns.append(1)
         else: sel_ns.append(0)
     fig2, ax2 = plt.subplots()
@@ -193,7 +192,8 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
     plt.close()
 
     fig3, ax3 = plt.subplots()
-    ax3.imshow(singlevp, cmap="viridis", aspect="auto")
+    ax3.imshow(singlevp.T, cmap="viridis", aspect="auto")
+    fig3.colorbar(ax=ax3)
     ax3.set_title("distance values per neuron")
     ax3.set_ylabel("PN neurons")
     ax3.set_xlabel("noise level (scaling)")
@@ -202,6 +202,7 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
 
     fig4, ax4= plt.subplots()
     ax4.imshow(rate_delta, cmap="viridis", aspect="auto")
+    fig4.colorbar(ax=ax4)
     ax4.set_title("change in firing rate")
     ax4.set_ylabel("PN neurons")
     ax4.set_xlabel("noise level (scaling)")
@@ -210,6 +211,7 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
 
     fig5, ax5 = plt.subplots()
     ax5.imshow(relative_rate_delta, cmap="viridis", aspect="auto")
+    fig5.colorbar(ax=ax5)
     ax5.set_title("change in firing rate relative to baseline")
     ax5.set_ylabel("PN neurons")
     ax5.set_xlabel("noise level (scaling)")

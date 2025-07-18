@@ -1,12 +1,11 @@
-import numpy as np
-import pygenn
 import os
-try:
-    import pygenn.cuda_backend
-except: print("No cuda, GPU will not be used!")
+import pygenn
 from pygenn import create_var_ref, init_postsynaptic, init_sparse_connectivity
 from pygenn.genn_model import GeNNModel, create_weight_update_model, create_postsynaptic_model, create_sparse_connect_init_snippet, create_var_init_snippet, init_weight_update
 import time
+try:
+    import pygenn.cuda_backend
+except: print("WARNING: No CUDA, GPU will not be used!")
 try:
     import GPUtil
 except: print("GPUtil not installed, you will have no info on gpu status, sim will start anyway.")

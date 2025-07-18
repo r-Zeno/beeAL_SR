@@ -48,13 +48,13 @@ class Experimenter:
     def _noise_lvl_injecter(self):
 
         corr_noise_lvl = self.noise_lvl/np.sqrt(self.model.dt)
-        print(f"injector for run {self.n_run}, applying noise lvl {self.noise_lvl} (corrected: {corr_noise_lvl})")
+        print(f"Run {self.n_run}, applying noise lvl {self.noise_lvl} (corrected: {corr_noise_lvl})")
 
         for pop in self.paras["noisy_pop"]:
             popobj = self.model.neuron_populations.get(pop)
-            print(popobj)
+            if self.debug: print(popobj)
             if popobj is not None:
-                print(f"injecting population{popobj}")
+                if self.debug: print(f"injecting population{popobj}")
                 popobj.set_dynamic_param_value("noise_A", corr_noise_lvl)
 
     def _rec_var_init(self):
@@ -67,8 +67,8 @@ class Experimenter:
             spike_t[pop] = []
             spike_id[pop] = []
 
-        print(spike_t)
-        print(spike_id)
+        if self.debug: print(spike_t)
+        if self.debug: print(spike_id)
 
         # rec var state from neurons
         self.what_to_rec = self.paras["what_to_rec"]
@@ -76,7 +76,7 @@ class Experimenter:
         for pop, var in self.what_to_rec:
             self.vars_rec[f"{pop}_{var}"] = []
 
-        print(self.vars_rec)
+        if self.debug: print(self.vars_rec)
         return spike_t, spike_id
 
     def _exp_separate_od(self):
@@ -102,7 +102,7 @@ class Experimenter:
 
         ors_population = self.model.neuron_populations["or"]
 
-        print("starting sim...")
+        if self.debug: print("starting sim...")
         start = time.time()
         i = 0
 
@@ -134,12 +134,12 @@ class Experimenter:
             while self.model.t < sim_time:
 
                 if not odor_applied and self.model.t >= t_odor_on:
-                    print(f"Time {self.model.t}, applying odor")
+                    if self.debug: print(f"Time {self.model.t}, applying odor")
                     set_odor_simple(ors_population, odor_slot, odor, on, self.hill_exp)
                     odor_applied = True
 
                 if odor_applied and not odor_removed and self.model.t >= t_odor_off:
-                    print(f"Time {self.model.t}, shutting off odor")
+                    if self.debug: print(f"Time {self.model.t}, shutting off odor")
                     set_odor_simple(ors_population, odor_slot, odor, off, self.hill_exp)
                     odor_removed = True
 
@@ -169,11 +169,9 @@ class Experimenter:
                         if (pop_to_pull.spike_recording_data[0][0].size > 0):
                             spike_t[pop].append(pop_to_pull.spike_recording_data[0][0])
                             spike_id[pop].append(pop_to_pull.spike_recording_data[0][1])
-                            if self.debug:
-                                print(f"spikes fetched for time {self.model.t} from {pop}")
+                            if self.debug: print(f"spikes fetched for time {self.model.t} from {pop}")
                         else: 
-                            if self.debug:
-                                print(f"no spikes in t {self.model.t} in {pop}")
+                            if self.debug: print(f"no spikes in t {self.model.t} in {pop}")
 
             self.model.unload() # clearing model before starting 2nd run
 
@@ -181,8 +179,7 @@ class Experimenter:
 
         end = time.time()
         timetaken = round(end-start, 2)
-        if self.debug:
-            print(f"sim ended. it took {timetaken} s.")
+        if self.debug: print(f"sim ended. it took {timetaken} s.")
 
     def _exp_consecutive_od(self, spike_t, spike_id):
 
@@ -217,32 +214,31 @@ class Experimenter:
         ors_population = self.model.neuron_populations["or"]
 
         # making sure odor is off
-        print(f"Initial state: applying 0.0 concentration to type {odor_slot}")
+        if self.debug: print(f"Initial state: applying 0.0 concentration to type {odor_slot}")
         set_odor_simple(ors_population, odor_slot, self.odors[0], off, self.hill_exp)
 
         int_t = 0 # init internal counter
-        if self.debug:
-            print("starting sim...")
+        if self.debug: print("starting sim...")
         start = time.time()
         while self.model.t < sim_time:
 
             if not odor1_applied and self.model.t >= t_odor1_on:
-                print(f"Time {self.model.t}, applying odor 1")
+                if self.debug: print(f"Time {self.model.t}, applying odor 1")
                 set_odor_simple(ors_population, odor_slot, self.odors[0], on, self.hill_exp)
                 odor1_applied = True
 
             if odor1_applied and not odor1_removed and self.model.t >= t_odor1_off:
-                print(f"Time {self.model.t}, shutting off odor 1")
+                if self.debug: print(f"Time {self.model.t}, shutting off odor 1")
                 set_odor_simple(ors_population, odor_slot, self.odors[0], off, self.hill_exp)
                 odor1_removed = True
 
             if odor1_removed and not odor2_applied and self.model.t >= t_odor2_on:
-                print(f"Time {self.model.t}, applying odor 2")
+                if self.debug: print(f"Time {self.model.t}, applying odor 2")
                 set_odor_simple(ors_population, odor_slot, self.odors[1], on, self.hill_exp)
                 odor2_applied = True
 
             if odor2_applied and not odor2_removed and self.model.t >= t_odor2_off:
-                print(f"Time {self.model.t}, shutting off odor 2")
+                if self.debug: print(f"Time {self.model.t}, shutting off odor 2")
                 set_odor_simple(ors_population, odor_slot, self.odors[1], off, self.hill_exp)
                 odor2_removed = True
 
@@ -272,16 +268,16 @@ class Experimenter:
                     if (pop_to_pull.spike_recording_data[0][0].size > 0):
                         spike_t[pop].append(pop_to_pull.spike_recording_data[0][0])
                         spike_id[pop].append(pop_to_pull.spike_recording_data[0][1])
-                        print(f"spikes fetched for time {self.model.t} from {pop}")
-                    else: print(f"no spikes in t {self.model.t} in {pop}")
+                        if self.debug: print(f"spikes fetched for time {self.model.t} from {pop}")
+                    else: 
+                        if self.debug: print(f"no spikes in t {self.model.t} in {pop}")
 
         self.model.unload()
                     
         end = time.time()
 
         timetaken = round(end-start, 2)
-        if self.debug:
-            print(f"sim ended. it took {timetaken} s.")
+        if self.debug: print(f"sim ended. it took {timetaken} s.")
 
         return spike_t, spike_id, exp_folder
 
@@ -307,8 +303,7 @@ class Experimenter:
             for pop_var2 in self.vars_rec:
                 np.save(os.path.join(exp_folder, f"{pop_var2}_states.npy"), self.vars_rec[pop_var2])
         else: 
-            if self.debug: 
-                print("Warning: variable states (V) are not being recorded for this run!")
+            if self.debug: print("Warning: variable states (V) are not being recorded for this run!")
 
         # saving the run's details into a json
         self.run_settings["noise_lvl"] = self.noise_lvl
@@ -329,7 +324,6 @@ class Experimenter:
             self._exp_separate_od()
         else: raise ValueError("Must choose an experiment in the parameters file!")
 
-        if self.debug:
-            print(f"exp run, saved in '{self.folder}'")
+        if self.debug: print(f"exp run, saved in '{self.folder}'")
 
         return self.folder
