@@ -186,6 +186,7 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
     plt.savefig(os.path.join(path, "selected_neurons.png"))
     plt.close()
 
+    singlevp = np.array(singlevp) # otherwise can't transpose
     fig3, ax3 = plt.subplots()
     ax3.imshow(singlevp.T, cmap="viridis", aspect="auto")
     fig3.colorbar(ax=ax3)
