@@ -93,7 +93,7 @@ class Simulator:
         print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s, time spent computing distances: {timetaken_an}s")
 
         if self.sim_paras["dist"]:
-            exploratory_plots(self.folder, means_vpdist, single_vpdist, neurons2analyze, rates, rate_delta, 
+            exploratory_plots(self.folder, means_vpdist, single_vpdist, neurons2analyze, rate_delta, 
                               relative_rate_delta, self.sim_paras, self.dist_paras)
         
         if self.sim_paras["dist"]:
