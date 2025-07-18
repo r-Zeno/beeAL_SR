@@ -179,6 +179,8 @@ class NeuronSelector:
 
         return neurons2analyze, decision_vector
     
+    
+
     def select(self):
 
         spks_split = self._neuron_spikes_assemble()
@@ -188,5 +190,5 @@ class NeuronSelector:
             neurons2analyze, decision_matrix = self._select_neurons_0noise(rates, self.paras["isexclusive"])
         else: neurons2analyze, decision_matrix = self._select_neurons(rates)
 
-        return neurons2analyze, decision_matrix
+        return neurons2analyze, decision_matrix, rates
     

@@ -11,7 +11,7 @@ class Experimenter:
     - model: the model created with ModelBuilder
     - experiment_parameter: dictionary containing odor/exp parameters, loaded by the simulator from json
     """
-    def __init__(self, model, experiment_parameters: dict, sim_path, n_run:int, noise_lvl:float, spk_rec_steps:int):
+    def __init__(self, model, experiment_parameters: dict, sim_path, n_run:int, noise_lvl:float, spk_rec_steps:int, debugmode: bool):
 
         self.noise_lvl = noise_lvl
         self.model = model
@@ -20,6 +20,7 @@ class Experimenter:
         self.spk_rec_steps = spk_rec_steps # ugly way to match the spike pulling rate to the model recording steps
         self.n_run = n_run
         self.run_settings= dict()
+        self.debug = debugmode
 
         dir_name = f"run_{str(self.n_run)}"
         self.folder = os.path.join(sim_path, dir_name)
@@ -133,12 +134,12 @@ class Experimenter:
             while self.model.t < sim_time:
 
                 if not odor_applied and self.model.t >= t_odor_on:
-                    print(f"Time {self.model.t}, applying odor 1")
+                    print(f"Time {self.model.t}, applying odor")
                     set_odor_simple(ors_population, odor_slot, odor, on, self.hill_exp)
                     odor_applied = True
 
                 if odor_applied and not odor_removed and self.model.t >= t_odor_off:
-                    print(f"Time {self.model.t}, shutting off odor 1")
+                    print(f"Time {self.model.t}, shutting off odor")
                     set_odor_simple(ors_population, odor_slot, odor, off, self.hill_exp)
                     odor_removed = True
 
@@ -168,8 +169,11 @@ class Experimenter:
                         if (pop_to_pull.spike_recording_data[0][0].size > 0):
                             spike_t[pop].append(pop_to_pull.spike_recording_data[0][0])
                             spike_id[pop].append(pop_to_pull.spike_recording_data[0][1])
-                            print(f"spikes fetched for time {self.model.t} from {pop}")
-                        else: print(f"no spikes in t {self.model.t} in {pop}")
+                            if self.debug:
+                                print(f"spikes fetched for time {self.model.t} from {pop}")
+                        else: 
+                            if self.debug:
+                                print(f"no spikes in t {self.model.t} in {pop}")
 
             self.model.unload() # clearing model before starting 2nd run
 
@@ -177,7 +181,8 @@ class Experimenter:
 
         end = time.time()
         timetaken = round(end-start, 2)
-        print(f"sim ended. it took {timetaken} s.")
+        if self.debug:
+            print(f"sim ended. it took {timetaken} s.")
 
     def _exp_consecutive_od(self, spike_t, spike_id):
 
@@ -216,7 +221,8 @@ class Experimenter:
         set_odor_simple(ors_population, odor_slot, self.odors[0], off, self.hill_exp)
 
         int_t = 0 # init internal counter
-        print("starting sim...")
+        if self.debug:
+            print("starting sim...")
         start = time.time()
         while self.model.t < sim_time:
 
@@ -274,7 +280,8 @@ class Experimenter:
         end = time.time()
 
         timetaken = round(end-start, 2)
-        print(f"sim ended. it took {timetaken} s.")
+        if self.debug:
+            print(f"sim ended. it took {timetaken} s.")
 
         return spike_t, spike_id, exp_folder
 
@@ -299,7 +306,9 @@ class Experimenter:
 
             for pop_var2 in self.vars_rec:
                 np.save(os.path.join(exp_folder, f"{pop_var2}_states.npy"), self.vars_rec[pop_var2])
-        else: print("Warning: variable states (V) are not being recorded for this run!")
+        else: 
+            if self.debug: 
+                print("Warning: variable states (V) are not being recorded for this run!")
 
         # saving the run's details into a json
         self.run_settings["noise_lvl"] = self.noise_lvl
@@ -320,6 +329,7 @@ class Experimenter:
             self._exp_separate_od()
         else: raise ValueError("Must choose an experiment in the parameters file!")
 
-        print(f"exp run, saved in '{self.folder}'")
+        if self.debug:
+            print(f"exp run, saved in '{self.folder}'")
 
         return self.folder

@@ -7,7 +7,8 @@ from Experimenter import Experimenter
 from SDFplotter import SDFplotter
 from DistanceAnalyzer import DistanceAnalyzer
 from NeuronSelector import NeuronSelector
-from helpers import exploratory_plot
+from RateAnalyzer import RateAnalyzer
+from helpers import exploratory_plots
 
 class Simulator:
 
@@ -52,7 +53,7 @@ class Simulator:
         model = build_plan.build()
 
         if self.sim_paras["dist"]:
-            single_dist = [] # for debugging
+            single_vpdist = [] # for debugging
             means_vpdist = []
 
         data_paths = []
@@ -69,7 +70,9 @@ class Simulator:
         print(f"Simulations ended, it took {timetaken_sim}")
 
         selector_init = NeuronSelector(data_paths, self.dist_paras, self.sim_paras["only0noise"], pad=False,)
-        neurons2analyze, decision_matrix = selector_init.select()
+        neurons2analyze, decision_matrix, rates = selector_init.select()
+
+        rate_delta, relative_rate_delta = RateAnalyzer(rates, neurons2analyze, self.dist_paras)
 
         print("Starting analysis...")
         start = time.time()
@@ -82,20 +85,20 @@ class Simulator:
             for path in data_paths:
                 vpdist_init = DistanceAnalyzer(path, self.dist_paras, neurons2analyze)
                 dist_result, dist_single = vpdist_init.compute_distance()
-                single_dist.append(dist_single)
+                single_vpdist.append(dist_single)
                 means_vpdist.append(dist_result)
         end = time.time()
         timetaken_an = round(end - start,2)
-        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s, time spent analyzing: {timetaken_an}")
+        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s, time spent computing distances: {timetaken_an}s")
 
         if self.sim_paras["dist"]:
-            exploratory_plot(self.folder, means_vpdist, self.sim_paras, self.dist_paras)
+            exploratory_plots(self.folder, means_vpdist, single_vpdist, neurons2analyze, rates, rate_delta, 
+                              relative_rate_delta, self.sim_paras, self.dist_paras)
         
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
-            np.save(os.path.join(self.folder, "single_vp_dist_values.npy"), single_dist)
+            np.save(os.path.join(self.folder, "single_vp_dist_values.npy"), single_vpdist)
             np.save(os.path.join(self.folder, "neurons_taken_distanalysis.npy"), decision_matrix)
-            print(f"Saved mean VP distance values per noise level in {self.folder}")
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:
             json.dump(self.parameters, fp, indent=4)

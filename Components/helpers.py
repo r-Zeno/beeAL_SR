@@ -169,10 +169,49 @@ def data_prep4numba_distance(train_1, train_2, cost):
         return 0.0
     else: return vp_metric(np.array(train_1), np.array(train_2), cost)
 
-def exploratory_plot(path, data, paras_sim, paras_dist):
+def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, relative_rate_delta, paras_sim, paras_dist):
 
-    y = data
     x = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], paras_sim["steps"])
-    plt.scatter(x,y)
-    plt.savefig(os.path.join(path, f"exp_plot_t{str(paras_dist["threshold"])}.png"))
+    fig1, ax1 = plt.subplots()
+    ax1.scatter(x, meanvp)
+    ax1.set_title("mean distance at n levels")
+    ax1.set_ylabel("VP-distance (normalized)")
+    ax1.set_xlabel("noise level (scaling)")
+    plt.savefig(os.path.join(path, "mean_distance.png"))
+    plt.close()
+
+    sel_ns = []
+    for i in range(len(selected_neurons)):
+        if selected_neurons[i]:
+            sel_ns.append(1)
+        else: sel_ns.append(0)
+    fig2, ax2 = plt.subplots()
+    ax2.plot(sel_ns)
+    ax2.set_title("selected neurons")
+    ax2.set_xlabel("neurons")
+    plt.savefig(os.path.join(path, "selected_neurons.png"))
+    plt.close()
+
+    fig3, ax3 = plt.subplots()
+    ax3.imshow(singlevp, cmap="viridis", aspect="auto")
+    ax3.set_title("distance values per neuron")
+    ax3.set_ylabel("PN neurons")
+    ax3.set_xlabel("noise level (scaling)")
+    plt.savefig(os.path.join(path, "distances_single.png"))
+    plt.close()
+
+    fig4, ax4= plt.subplots()
+    ax4.imshow(rate_delta, cmap="viridis", aspect="auto")
+    ax4.set_title("change in firing rate")
+    ax4.set_ylabel("PN neurons")
+    ax4.set_xlabel("noise level (scaling)")
+    plt.savefig(os.path.join(path, "delta_r.png"))
+    plt.close()
+
+    fig5, ax5 = plt.subplots()
+    ax5.imshow(relative_rate_delta, cmap="viridis", aspect="auto")
+    ax5.set_title("change in firing rate relative to baseline")
+    ax5.set_ylabel("PN neurons")
+    ax5.set_xlabel("noise level (scaling)")
+    plt.savefig(os.path.join(path, "relative_delta_r.png"))
     plt.close()

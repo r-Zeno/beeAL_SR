@@ -31,14 +31,14 @@ if [ -d "$LATEST_SIM_DIR" ]; then
   echo "latest simulation directory: $LATEST_SIM_DIR"
 
   cp "$LATEST_SIM_DIR"/mean_vp_dist_x_noiselvls.npy "${EVAL_LATEST_DIR}/meanvp_result.npy"
-
   cp "$LATEST_SIM_DIR"/single_vp_dist_values.npy "${EVAL_LATEST_DIR}/singlevp_result.npy"
-
   cp "$LATEST_SIM_DIR"/neurons_taken_distanalysis.npy "${EVAL_LATEST_DIR}/selected_neurons.npy"
-
   cp "$LATEST_SIM_DIR"/sim_settings.json "${EVAL_LATEST_DIR}/settings.json"
-
-  find "$LATEST_SIM_DIR" -maxdepth 1 -name "*.png" -print -quit | xargs -I {} cp {} "${EVAL_LATEST_DIR}/plot.png"
+  cp "$LATEST_SIM_DIR"/mean_distance.png "${EVAL_LATEST_DIR}/mean_distance.png"
+  cp "$LATEST_SIM_DIR"/selected_neurons.png "${EVAL_LATEST_DIR}/selected_neurons.png"
+  cp "$LATEST_SIM_DIR"/distances_single.png "${EVAL_LATEST_DIR}/distances_single.png"
+  cp "$LATEST_SIM_DIR"/delta_r.png "${EVAL_LATEST_DIR}/delta_r.png"
+  cp "$LATEST_SIM_DIR"/relative_delta_r.png "${EVAL_LATEST_DIR}/relative_delta_r.png"
 
   echo "Latest files are ready for download in ${EVAL_LATEST_DIR}"
 else
