@@ -179,13 +179,8 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
     plt.savefig(os.path.join(path, "mean_distance.png"))
     plt.close()
 
-    sel_ns = []
-    for i in range(len(selected_neurons)):
-        if any(selected_neurons[i]): # ok only if not exclusive selection in NeuronSelector! will fix this
-            sel_ns.append(1)
-        else: sel_ns.append(0)
     fig2, ax2 = plt.subplots()
-    ax2.plot(sel_ns)
+    ax2.plot(selected_neurons)
     ax2.set_title("selected neurons")
     ax2.set_xlabel("neurons")
     plt.savefig(os.path.join(path, "selected_neurons.png"))
