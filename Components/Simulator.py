@@ -72,7 +72,8 @@ class Simulator:
         selector_init = NeuronSelector(data_paths, self.dist_paras, self.sim_paras["only0noise"], pad=False,)
         neurons2analyze, decision_matrix, rates = selector_init.select()
 
-        rate_delta, relative_rate_delta = RateAnalyzer(rates, neurons2analyze, self.dist_paras)
+        rate_init = RateAnalyzer(rates, neurons2analyze, self.dist_paras)
+        rate_delta, relative_rate_delta = rate_init.get_rate_diff()
 
         print("Starting analysis...")
         start = time.time()
