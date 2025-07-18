@@ -36,6 +36,7 @@ class Simulator:
         self.spk_rec_steps = self.mod_paras["spk_rec_steps"] # ugly way to pass model recording steps to the Experimenter
         self.exp_1 = self.exp_paras["experiment_concurrent"]
         self.exp_2 = self.exp_paras["experiment_separate"]
+        self.debugmode = self.sim_paras["debugmode"]
 
         self.noise_lvls = np.linspace(self.sim_paras["noiselvl_min"], self.sim_paras["noiselvl_max"], self.sim_paras["steps"])
 
@@ -59,8 +60,7 @@ class Simulator:
         data_paths = []
         run = 0
         for lvl in self.noise_lvls:
-
-            experiment = Experimenter(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps)
+            experiment = Experimenter(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps, self.debugmode)
             data_path = experiment.run(self.exp_1, self.exp_2)
             data_paths.append(data_path)
             run += 1
