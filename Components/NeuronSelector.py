@@ -92,7 +92,7 @@ class NeuronSelector:
         idxn = ndiff.argmin()
         print(f"sanity check: taking run {idxn} as reference")
         run2take = rate_delta_odors_diff[:, idxn]
-        neurons2analyze = np.where(run2take >= th)
+        neurons2analyze = np.where(run2take >= th)[0]
         neurons2analyze.tolist()
 
         return neurons2analyze
