@@ -179,9 +179,14 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, flat
     plt.savefig(os.path.join(path, "mean_distance.png"))
     plt.close()
 
+    num_n = 800
+    neurons = np.zeros(num_n)
+    neurons[selected_neurons] = 1
+    xn = np.arange(num_n)
     fig2, ax2 = plt.subplots()
-    ax2.plot(selected_neurons)
+    ax2.scatter(xn, neurons)
     ax2.set_title("selected neurons")
+    ax2.set_yticks([0,1])
     ax2.set_xlabel("neurons")
     plt.savefig(os.path.join(path, "selected_neurons.png"))
     plt.close()
