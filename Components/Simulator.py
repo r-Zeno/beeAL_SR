@@ -37,6 +37,7 @@ class Simulator:
         self.exp_1 = self.exp_paras["experiment_concurrent"]
         self.exp_2 = self.exp_paras["experiment_separate"]
         self.debugmode = self.sim_paras["debugmode"]
+        self.selection_criterion = self.sim_paras["selection_criterion"]
 
         self.noise_lvls = np.linspace(self.sim_paras["noiselvl_min"], self.sim_paras["noiselvl_max"], self.sim_paras["steps"])
 
@@ -69,8 +70,8 @@ class Simulator:
         timetaken_sim = round(end - start,2)
         print(f"Simulations ended, it took {timetaken_sim}")
 
-        selector_init = NeuronSelector(data_paths, self.dist_paras, self.sim_paras["only0noise"], pad=False,)
-        neurons2analyze, decision_matrix, rates = selector_init.select()
+        selector_init = NeuronSelector(data_paths, self.dist_paras, self.selection_criterion, pad=False,)
+        neurons2analyze, rates = selector_init.select()
 
         rate_init = RateAnalyzer(rates, neurons2analyze, self.dist_paras)
         flat_rate_base, flat_rate_stim, rate_delta, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff = rate_init.get_rate_diffs()
@@ -100,7 +101,6 @@ class Simulator:
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
             np.save(os.path.join(self.folder, "single_vp_dist_values.npy"), single_vpdist)
-            np.save(os.path.join(self.folder, "neurons_taken_distanalysis.npy"), decision_matrix)
 
         with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:
             json.dump(self.parameters, fp, indent=4)

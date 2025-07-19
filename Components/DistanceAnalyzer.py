@@ -44,7 +44,13 @@ class DistanceAnalyzer:
         spikes_pop = []
         for od_trial in range(len(self.spike_ts)):
             
-            curr_idxt = np.stack((self.spike_ids[od_trial], self.spike_ts[od_trial]), 1)
+            spike_ts = self.spike_ts[od_trial]
+            spike_ids = self.spike_ids[od_trial]
+
+            time_mask = (spike_ts >= 1000) & (spike_ts <= 4000)
+            filtered_ts = spike_ts[time_mask]
+            filtered_ids = spike_ids[time_mask]
+            curr_idxt = np.stack((filtered_ids, filtered_ts), 1)
             spikes_pop.append(curr_idxt)
 
         spikes_idxt = {}

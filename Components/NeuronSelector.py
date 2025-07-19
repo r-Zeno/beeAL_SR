@@ -4,12 +4,12 @@ import numpy as np
 
 class NeuronSelector:
 
-    def __init__(self, paths, paras, only0noise:bool, pad:bool):
+    def __init__(self, paths, paras, how2select:bool, pad:bool):
 
         self.paths = paths
         self.paras = paras
         self.pad = pad
-        self.only0noise = only0noise
+        self.how2select = how2select
 
     def _neuron_spikes_assemble(self):
 
@@ -180,16 +180,28 @@ class NeuronSelector:
 
         return neurons2analyze, decision_vector
     
-    
+    def _take_odor_selective(self, rate_delta_odors_diff, noise_lvls):
 
+        th = self.paras["odor_diff_threshold"]
+        nlvl = self.paras["reference_noiselvl"]
+        ndiff = np.abs(noise_lvls - nlvl)
+        idxn = ndiff.argmin()
+        run2take = rate_delta_odors_diff[:, idxn]
+        neurons2analyze = np.where(run2take >= th)
+
+        return neurons2analyze
+        
     def select(self):
 
         spks_split = self._neuron_spikes_assemble()
         rates = self._fire_rate(spks_split)
 
-        if self.only0noise:
-            neurons2analyze, decision_matrix = self._select_neurons_0noise(rates, self.paras["isexclusive"])
-        else: neurons2analyze, decision_matrix = self._select_neurons(rates)
+        if self.how2select["only0noise"]:
+            neurons2analyze, _ = self._select_neurons_0noise(rates, self.paras["isexclusive"])
+        elif self.how2select["select_overall"]:
+            neurons2analyze, _ = self._select_neurons(rates)
+        #elif self.how2select["take_odor_selectives"]:
+        #    neurons2analyze = self._take_odor_selective(rate_delta_odors_diff=, noise_lvls=)
 
-        return neurons2analyze, decision_matrix, rates
+        return neurons2analyze, rates
     
