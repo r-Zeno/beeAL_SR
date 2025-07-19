@@ -71,7 +71,7 @@ class Simulator:
         print(f"Simulations ended, it took {timetaken_sim}")
 
         spk_split = neuron_spikes_assemble(data_paths, self.dist_paras, pad=False)
-        rates = fire_rate(spk_split, data_paths)
+        rates = fire_rate(spk_split, self.dist_paras)
 
         rate_init = RateAnalyzer(rates, self.dist_paras)
         flat_rate_base, flat_rate_stim, rate_delta, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff = rate_init.get_rate_diffs()
