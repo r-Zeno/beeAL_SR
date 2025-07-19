@@ -57,7 +57,6 @@ class RateAnalyzer:
         runs = list(self.rates["baseline"].keys())
         n_runs = len(runs)
         n_neurons = self.paras["pop_number"]
-        odors = self.paras["odors"]
         pops = self.paras["which_pop"]
 
         rate_delta_odors = np.zeros((n_neurons, n_runs), dtype=float)
