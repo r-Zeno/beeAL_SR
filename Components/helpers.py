@@ -1,5 +1,5 @@
-import numpy as np
 import os
+import numpy as np
 from matplotlib import pyplot as plt
 from numba import jit
 
@@ -188,8 +188,8 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
 
     singlevp = np.array(singlevp) # otherwise can't transpose
     fig3, ax3 = plt.subplots()
-    ax3.imshow(singlevp.T, cmap="viridis", aspect="auto")
-    fig3.colorbar(ax=ax3)
+    heat1 = ax3.imshow(singlevp.T, cmap="viridis", aspect="auto", vmin=0.0, vmax=1.0)
+    fig3.colorbar(heat1, ax=ax3)
     ax3.set_title("distance values per neuron")
     ax3.set_ylabel("PN neurons")
     ax3.set_xlabel("noise level (scaling)")
@@ -197,8 +197,8 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
     plt.close()
 
     fig4, ax4= plt.subplots()
-    ax4.imshow(rate_delta, cmap="viridis", aspect="auto")
-    fig4.colorbar(ax=ax4)
+    heat2 = ax4.imshow(rate_delta, cmap="viridis", aspect="auto", vmin=0.0)
+    fig4.colorbar(heat2, ax=ax4)
     ax4.set_title("change in firing rate")
     ax4.set_ylabel("PN neurons")
     ax4.set_xlabel("noise level (scaling)")
@@ -206,8 +206,8 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
     plt.close()
 
     fig5, ax5 = plt.subplots()
-    ax5.imshow(relative_rate_delta, cmap="viridis", aspect="auto")
-    fig5.colorbar(ax=ax5)
+    heat3 = ax5.imshow(relative_rate_delta, cmap="viridis", aspect="auto", vmin=-1.0, vmax=1.0)
+    fig5.colorbar(heat3, ax=ax4)
     ax5.set_title("change in firing rate relative to baseline")
     ax5.set_ylabel("PN neurons")
     ax5.set_xlabel("noise level (scaling)")
