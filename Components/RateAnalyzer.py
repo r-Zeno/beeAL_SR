@@ -85,6 +85,8 @@ class RateAnalyzer:
                     rate_delta_odors[neuron, idx] = curr_delta_odors
                     relative_rate_delta_odors[neuron, idx] = curr_rel_delta_odors
 
+        return rate_delta_odors, relative_rate_delta_odors
+
     def get_rate_diffs(self):
 
         rate_delta, relative_rate_delta = self._rate_measures_compute()
