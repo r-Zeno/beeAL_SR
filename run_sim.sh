@@ -43,6 +43,10 @@ if [ -d "$LATEST_SIM_DIR" ]; then
   cp "$LATEST_SIM_DIR"/relative_delta_r_odor2.png "${EVAL_LATEST_DIR}/relative_delta_r_odor2.png"
   cp "$LATEST_SIM_DIR"/rate_delta_odorsdiff.png "${EVAL_LATEST_DIR}/rate_delta_odorsdiff.png"
   cp "$LATEST_SIM_DIR"/relative_rate_delta_odorsdiff.png "${EVAL_LATEST_DIR}/relative_rate_delta_odorsdiff.png"
+  cp "$LATEST_SIM_DIR"/flat_base_rate_od1.png "${EVAL_LATEST_DIR}/flat_base_rate_od1.png"
+  cp "$LATEST_SIM_DIR"/flat_base_rate_od2.png "${EVAL_LATEST_DIR}/flat_base_rate_od2.png"
+  cp "$LATEST_SIM_DIR"/flat_stim_rate_od1.png "${EVAL_LATEST_DIR}/flat_stim_rate_od1.png"
+  cp "$LATEST_SIM_DIR"/flat_stim_rate_od2.png "${EVAL_LATEST_DIR}/flat_stim_rate_od2.png"
 
   echo "Latest files are ready for download in ${EVAL_LATEST_DIR}"
 else

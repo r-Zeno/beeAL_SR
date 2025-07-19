@@ -168,7 +168,7 @@ def data_prep4numba_distance(train_1, train_2, cost):
         return 0.0
     else: return vp_metric(np.array(train_1), np.array(train_2), cost)
 
-def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff, paras_sim, paras_dist):
+def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, flat_rate_base, flat_rate_stim, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff, paras_sim, paras_dist):
 
     x = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], paras_sim["steps"])
     fig1, ax1 = plt.subplots()
@@ -194,6 +194,42 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
     ax3.set_ylabel("PN neurons")
     ax3.set_xlabel("noise level (scaling)")
     plt.savefig(os.path.join(path, "distances_single.png"))
+    plt.close()
+
+    fig10, ax10= plt.subplots()
+    heat8 = ax10.imshow(flat_rate_base["odor_1"], cmap="viridis", aspect="auto")
+    fig10.colorbar(heat8, ax=ax10)
+    ax10.set_title("baseline firing rate - odor1")
+    ax10.set_ylabel("PN neurons")
+    ax10.set_xlabel("noise level (scaling)")
+    plt.savefig(os.path.join(path, "flat_base_rate_od1.png"))
+    plt.close()
+
+    fig11, ax11= plt.subplots()
+    heat9 = ax11.imshow(flat_rate_base["odor_2"], cmap="viridis", aspect="auto")
+    fig11.colorbar(heat9, ax=ax11)
+    ax11.set_title("baseline firing rate - odor2")
+    ax11.set_ylabel("PN neurons")
+    ax11.set_xlabel("noise level (scaling)")
+    plt.savefig(os.path.join(path, "flat_base_rate_od2.png"))
+    plt.close()
+
+    fig12, ax12= plt.subplots()
+    heat10 = ax12.imshow(flat_rate_stim["odor_1"], cmap="viridis", aspect="auto")
+    fig12.colorbar(heat10, ax=ax12)
+    ax12.set_title("baseline firing rate - odor2")
+    ax12.set_ylabel("PN neurons")
+    ax12.set_xlabel("noise level (scaling)")
+    plt.savefig(os.path.join(path, "flat_stim_rate_od1.png"))
+    plt.close()
+
+    fig13, ax13= plt.subplots()
+    heat11 = ax13.imshow(flat_rate_stim["odor_2"], cmap="viridis", aspect="auto")
+    fig13.colorbar(heat11, ax=ax13)
+    ax13.set_title("baseline firing rate - odor2")
+    ax13.set_ylabel("PN neurons")
+    ax13.set_xlabel("noise level (scaling)")
+    plt.savefig(os.path.join(path, "flat_stim_rate_od2.png"))
     plt.close()
 
     fig4, ax4= plt.subplots()

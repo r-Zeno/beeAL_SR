@@ -18,9 +18,13 @@ class RateAnalyzer:
 
         rate_deltas = {}
         relative_rate_deltas = {}
+        flat_rate_base = {}
+        flat_rate_stim = {}
         for odor in odors:
             rate_deltas[odor] = np.zeros((n_neurons, n_runs), dtype=float)
             relative_rate_deltas[odor] = np.zeros((n_neurons, n_runs), dtype=float)
+            flat_rate_base[odor] = np.zeros((n_neurons, n_runs), dtype=float)
+            flat_rate_stim[odor] = np.zeros((n_neurons, n_runs), dtype=float)
 
         run_idx = {}
         for i, run in enumerate(runs):
@@ -44,7 +48,10 @@ class RateAnalyzer:
                         rate_deltas[odor][neuron, idx] = curr_delta
                         relative_rate_deltas[odor][neuron, idx] = curr_rel_delta
 
-        return rate_deltas, relative_rate_deltas
+                        flat_rate_base[odor][neuron, idx] = curr_base_rate
+                        flat_rate_stim[odor][neuron, idx] = curr_stim_rate
+
+        return rate_deltas, relative_rate_deltas, flat_rate_base, flat_rate_stim
     
     def _rate_measures_odordiff_compute(self):
 
@@ -79,7 +86,7 @@ class RateAnalyzer:
                     if curr_base_rate_od2 == 0 and curr_stim_rate_od2 == 0:
                         curr_rel_delta_od2 = 0.0
                     else: curr_rel_delta_od2 = (curr_stim_rate_od2 - curr_base_rate_od2)/(curr_stim_rate_od2 + curr_base_rate_od2)
-                    curr_rel_delta_odors = curr_rel_delta_od1 - curr_rel_delta_od2
+                    curr_rel_delta_odors = abs(curr_rel_delta_od1 - curr_rel_delta_od2) # don't care about the direction of the difference (od1/od2)
 
                     idx = run_idx[run]
                     rate_delta_odors[neuron, idx] = curr_delta_odors
@@ -89,7 +96,7 @@ class RateAnalyzer:
 
     def get_rate_diffs(self):
 
-        rate_delta, relative_rate_delta = self._rate_measures_compute()
+        rate_delta, relative_rate_delta, flat_rate_base, flat_rate_stim = self._rate_measures_compute()
         rate_delta_odorsdiff, relative_rate_delta_odorsdiff = self._rate_measures_odordiff_compute()
 
-        return rate_delta, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff
+        return flat_rate_base, flat_rate_stim, rate_delta, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff

@@ -73,7 +73,7 @@ class Simulator:
         neurons2analyze, decision_matrix, rates = selector_init.select()
 
         rate_init = RateAnalyzer(rates, neurons2analyze, self.dist_paras)
-        rate_delta, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff = rate_init.get_rate_diffs()
+        flat_rate_base, flat_rate_stim, rate_delta, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff = rate_init.get_rate_diffs()
 
         print("Starting analysis...")
         start = time.time()
@@ -90,11 +90,12 @@ class Simulator:
                 means_vpdist.append(dist_result)
         end = time.time()
         timetaken_an = round(end - start,2)
-        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s/{round(timetaken_sim/60)}min, time spent computing distances: {timetaken_an}s")
+        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s | {round(timetaken_sim/60)}min, time spent computing distances: {timetaken_an}s")
 
         if self.sim_paras["dist"]:
-            exploratory_plots(self.folder, means_vpdist, single_vpdist, neurons2analyze, rate_delta, relative_rate_delta, 
-                              rate_delta_odorsdiff, relative_rate_delta_odorsdiff, self.sim_paras, self.dist_paras)
+            exploratory_plots(self.folder, means_vpdist, single_vpdist, neurons2analyze, rate_delta, 
+                              flat_rate_base, flat_rate_stim, relative_rate_delta, rate_delta_odorsdiff, 
+                              relative_rate_delta_odorsdiff, self.sim_paras, self.dist_paras)
         
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
