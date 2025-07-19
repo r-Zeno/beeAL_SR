@@ -17,6 +17,7 @@ class NeuronSelector:
             padding = 200
         else: padding = 0
 
+        # probably all these nested loops should be vectorized, but its the last thing to spend time on
         runs_baseline = {}
         runs_stimulation = {}
         for run in self.paths:
