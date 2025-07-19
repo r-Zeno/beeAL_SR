@@ -184,7 +184,7 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, flat
     neurons[selected_neurons] = 1
     xn = np.arange(num_n)
     fig2, ax2 = plt.subplots()
-    ax2.scatter(xn, neurons)
+    ax2.plot(xn, neurons)
     ax2.set_title("selected neurons")
     ax2.set_yticks([0,1])
     ax2.set_xlabel("neurons")
