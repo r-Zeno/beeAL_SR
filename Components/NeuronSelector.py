@@ -4,109 +4,13 @@ import numpy as np
 
 class NeuronSelector:
 
-    def __init__(self, paths, paras, how2select:bool, pad:bool):
+    def __init__(self, paras, rates, rate_delta_odors_diff, noise_lvls, how2select:bool):
 
-        self.paths = paths
+        self.rates = rates
         self.paras = paras
-        self.pad = pad
         self.how2select = how2select
-
-    def _neuron_spikes_assemble(self):
-
-        if self.pad:
-            padding = 200
-        else: padding = 0
-
-        # probably all these nested loops should be vectorized, but its the last thing to spend time on
-        runs_baseline = {}
-        runs_stimulation = {}
-        for run in self.paths:
-
-            run_name = os.path.basename(run)
-            curr_run_baseline = {}
-            curr_run_stimulation = {}
-
-            for odor in self.paras["odors"]:
-
-                curr_odor_baseline = {}
-                curr_odor_stimulation = {}
-
-                for pop in self.paras["which_pop"]: # useless for now since only 1 pop, included for scalability
-
-                    curr_spike_ts = np.load(os.path.join(run, odor, f"{pop}_spike_t.npy"))
-                    curr_spike_ids = np.load(os.path.join(run, odor, f"{pop}_spike_id.npy"))
-                    curr_pop_idxt = np.stack((curr_spike_ids, curr_spike_ts), 1)
-                    curr_odor_baseline[pop] = {}
-                    curr_odor_stimulation[pop] = {}
-
-                    for (id, t) in curr_pop_idxt:
-                        key = int(id)
-                        if t < self.paras["start_stim"]:
-
-                            if key not in curr_odor_baseline[pop]:
-                                curr_odor_baseline[pop][key] = []
-
-                            curr_odor_baseline[pop][key].append(t)
-
-                        elif self.paras["start_stim"] < t < self.paras["end_stim"]+padding:
-
-                            if key not in curr_odor_stimulation[pop]:
-                                curr_odor_stimulation[pop][key] = []
-
-                            curr_odor_stimulation[pop][key].append(t)
-                        else: pass
-
-                    final_spk_baseline = {}
-                    final_spk_stimulation = {}
-                    for i in range(self.paras["pop_number"]):
-                        final_spk_baseline[i] = curr_odor_baseline[pop].get(i, [])
-                        final_spk_stimulation[i] = curr_odor_stimulation[pop].get(i, [])
-
-                    curr_odor_baseline[pop] = final_spk_baseline
-                    curr_odor_stimulation[pop] = final_spk_stimulation
-
-                curr_run_baseline[odor] = curr_odor_baseline
-                curr_run_stimulation[odor] = curr_odor_stimulation
-
-            runs_baseline[run_name] = curr_run_baseline
-            runs_stimulation[run_name] = curr_run_stimulation
-
-        spks_split = {}
-        spks_split["baseline"] = runs_baseline
-        spks_split["stimulation"] = runs_stimulation
-
-        return spks_split
-
-    def _fire_rate(self, data:dict):
-        
-        baseline_t = self.paras["start_stim"] / 1000.0 # from ms to s (rate in Hz)
-        stimulation_t = (self.paras["end_stim"] - self.paras["start_stim"]) / 1000.0
-        print(f"DEBUG: Baseline Duration = {baseline_t}s")
-        print(f"DEBUG: Stimulation Duration = {stimulation_t}s")
-        rates = {}
-        for state, runs in data.items():
-
-            rates[state] = {}
-
-            if state == "baseline":
-                duration = baseline_t
-            else: duration = stimulation_t
-
-            for run_n, odors in runs.items():
-                rates[state][run_n] = {}
-
-                for odor_n, pops in odors.items():
-                    rates[state][run_n][odor_n] = {}
-
-                    for pop_n, neurons in pops.items():
-                        rates[state][run_n][odor_n][pop_n] = {}
-
-                        for neuron, spikes in neurons.items():
-
-                            curr_rate = len(spikes) / duration
-                            rates[state][run_n][odor_n][pop_n][neuron] = curr_rate
-        
-        return rates
+        self.rate_delta_odors_diff = rate_delta_odors_diff
+        self.noise_lvls = noise_lvls
 
     def _select_neurons(self, rates:dict):
 
@@ -182,7 +86,7 @@ class NeuronSelector:
     
     def _take_odor_selective(self, rate_delta_odors_diff, noise_lvls):
 
-        th = self.paras["odor_diff_threshold"]
+        th = self.paras["odor_diff_threshold(Hz)"]
         nlvl = self.paras["reference_noiselvl"]
         ndiff = np.abs(noise_lvls - nlvl)
         idxn = ndiff.argmin()
@@ -193,15 +97,13 @@ class NeuronSelector:
         
     def select(self):
 
-        spks_split = self._neuron_spikes_assemble()
-        rates = self._fire_rate(spks_split)
-
         if self.how2select["only0noise"]:
-            neurons2analyze, _ = self._select_neurons_0noise(rates, self.paras["isexclusive"])
+            neurons2analyze, _ = self._select_neurons_0noise(self.rates, self.paras["isexclusive"])
         elif self.how2select["select_overall"]:
-            neurons2analyze, _ = self._select_neurons(rates)
-        #elif self.how2select["take_odor_selectives"]:
-        #    neurons2analyze = self._take_odor_selective(rate_delta_odors_diff=, noise_lvls=)
+            neurons2analyze, _ = self._select_neurons(self.rates)
+        elif self.how2select["take_odor_selectives"]:
+            neurons2analyze = self._take_odor_selective(self.rate_delta_odors_diff, self.noise_lvls)
+        else: raise ValueError("Must choose a selection criterion for the nuerons to use in dist analysis!")
 
-        return neurons2analyze, rates
+        return neurons2analyze
     

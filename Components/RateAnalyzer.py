@@ -2,11 +2,10 @@ import numpy as np
 
 class RateAnalyzer:
 
-    def __init__(self, rates:dict, neuronsidx, paras:dict):
+    def __init__(self, rates:dict, paras:dict):
 
         self.rates = rates
         self.paras = paras
-        self.idxn = neuronsidx
 
     def _rate_measures_compute(self): # duplicate of _select_neurons logic, but would be messy to save delta rates from NeuronSelector
 
