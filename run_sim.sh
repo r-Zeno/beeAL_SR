@@ -38,7 +38,7 @@ if [ -d "$LATEST_SIM_DIR" ]; then
   cp "$LATEST_SIM_DIR"/selected_neurons.png "${EVAL_LATEST_DIR}/selected_neurons.png"
   cp "$LATEST_SIM_DIR"/distances_single.png "${EVAL_LATEST_DIR}/distances_single.png"
   cp "$LATEST_SIM_DIR"/delta_r_odor1.png "${EVAL_LATEST_DIR}/delta_r_odor1.png"
-  cp "$LATEST_SIM_DIR"/delta_r_odor2.png "${EVAL_LATEST_DIR}/delta_r__odor2.png"
+  cp "$LATEST_SIM_DIR"/delta_r_odor2.png "${EVAL_LATEST_DIR}/delta_r_odor2.png"
   cp "$LATEST_SIM_DIR"/relative_delta_r_odor1.png "${EVAL_LATEST_DIR}/relative_delta_r_odor1.png"
   cp "$LATEST_SIM_DIR"/relative_delta_r_odor2.png "${EVAL_LATEST_DIR}/relative_delta_r_odor2.png"
   cp "$LATEST_SIM_DIR"/rate_delta_odorsdiff.png "${EVAL_LATEST_DIR}/rate_delta_odorsdiff.png"

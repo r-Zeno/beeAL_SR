@@ -207,10 +207,10 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
 
     fig8, ax8= plt.subplots()
     heat6 = ax8.imshow(rate_delta["odor_2"], cmap="viridis", aspect="auto")
-    fig8.colorbar(heat6, ax=ax4)
-    ax4.set_title("change in firing rate - odor2")
-    ax4.set_ylabel("PN neurons")
-    ax4.set_xlabel("noise level (scaling)")
+    fig8.colorbar(heat6, ax=ax8)
+    ax8.set_title("change in firing rate - odor2")
+    ax8.set_ylabel("PN neurons")
+    ax8.set_xlabel("noise level (scaling)")
     plt.savefig(os.path.join(path, "delta_r_odor2.png"))
     plt.close()
 
@@ -233,7 +233,7 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, rela
     plt.close()
     
     fig6, ax6 = plt.subplots()
-    heat4 = ax6.imshow(rate_delta_odorsdiff[2], cmap="viridis", aspect="auto")
+    heat4 = ax6.imshow(rate_delta_odorsdiff, cmap="viridis", aspect="auto")
     fig6.colorbar(heat4, ax=ax6)
     ax6.set_title("firing rate difference between odors")
     ax6.set_ylabel("PN neurons")

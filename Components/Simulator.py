@@ -90,7 +90,7 @@ class Simulator:
                 means_vpdist.append(dist_result)
         end = time.time()
         timetaken_an = round(end - start,2)
-        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s, time spent computing distances: {timetaken_an}s")
+        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s/{round(timetaken_sim/60)}min, time spent computing distances: {timetaken_an}s")
 
         if self.sim_paras["dist"]:
             exploratory_plots(self.folder, means_vpdist, single_vpdist, neurons2analyze, rate_delta, relative_rate_delta, 
