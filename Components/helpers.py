@@ -295,7 +295,7 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, flat
     ax3.set_title("distance values per neuron")
     ax3.set_ylabel("PN neurons")
     ax3.set_xlabel("noise level (scaling)")
-    plt.savefig(os.path.join(path, "distances_single.png"))
+    plt.savefig(os.path.join(path, "distances_single.png"),dpi=300)
     plt.close()
 
     fig10, ax10= plt.subplots()
