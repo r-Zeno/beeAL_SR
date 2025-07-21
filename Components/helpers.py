@@ -288,10 +288,14 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, flat
     plt.savefig(os.path.join(path, "selected_neurons.png"))
     plt.close()
 
-    for plot in paras_plots.items():
-        xnames = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], paras_plots[plot]["nticks"])
-        for i in range(len(xnames)):
-            xnames[i] = round(xnames[i],2)
+    for plot in paras_plots:
+
+        numticks = paras_plots[plot]["nticks"]
+        ncols = paras_sim["steps"]
+        tickpos = np.linspace(0, ncols-1, numticks, dtype=int)
+        labels = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], numticks)
+        for i in range(len(labels)):
+            labels[i] = round(labels[i], 2)
 
         if plot == "individual_distances":
             singlevp = np.array(singlevp).T
@@ -302,7 +306,8 @@ def exploratory_plots(path, meanvp, singlevp, selected_neurons, rate_delta, flat
         ax.set_title(paras_plots[plot]["title"])
         ax.set_ylabel(paras_plots[plot]["ylabel"])
         ax.set_xlabel(paras_plots[plot]["xlabel"])
-        ax.set_xticks(x, xnames)
+        ax.set_xticks(tickpos)
+        ax.set_xticklabels(labels)
         ax.tick_params(axis="x", labelrotation=45)
         plt.savefig(os.path.join(path, paras_plots[plot]["filename"]),dpi=paras_plots[plot]["dpi"])
         plt.close()

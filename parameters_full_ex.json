@@ -202,6 +202,7 @@
     "exp_plot_parameters": {
 
         "individual_distances": {
+            "nticks": 15,
             "data": "singlevp",
             "color_map": "viridis",
             "title": "Distance values per neuron",
@@ -212,6 +213,7 @@
         },
 
         "baseline_r_od1": {
+            "nticks": 15,
             "data": "flat_rate_base[\"odor_1\"]",
             "color_map": "viridis",
             "title": "baseline firing rate - odor1",
@@ -222,6 +224,7 @@
         },
 
         "baseline_r_od2": {
+            "nticks": 15,
             "data": "flat_rate_base[\"odor_2\"]",
             "color_map": "viridis",
             "title": "baseline firing rate - odor2",
@@ -232,6 +235,7 @@
         },
 
         "stimulation_r_od1": {
+            "nticks": 15,
             "data": "flat_rate_stim[\"odor_1\"]",
             "color_map": "viridis",
             "title": "stimulation firing rate - odor1",
@@ -242,6 +246,7 @@
         },
 
         "stimulation_r_od2": {
+            "nticks": 15,
             "data": "flat_rate_stim[\"odor_2\"]",
             "color_map": "viridis",
             "title": "stimulation firing rate - odor2",
@@ -252,6 +257,7 @@
         },
 
         "delta_r_od1": {
+            "nticks": 15,
             "data": "rate_delta[\"odor_1\"]",
             "color_map": "viridis",
             "title": "change in firing rate - odor1",
@@ -262,6 +268,7 @@
         },
 
         "delta_r_od2": {
+            "nticks": 15,
             "data": "rate_delta[\"odor_2\"]",
             "color_map": "viridis",
             "title": "change in firing rate - odor2",
@@ -272,6 +279,7 @@
         },
 
         "relative_delta_r_od1": {
+            "nticks": 15,
             "data": "relative_rate_delta[\"odor_1\"]",
             "color_map": "viridis",
             "title": "change in firing rate relative to baseline - odor1",
@@ -282,6 +290,7 @@
         },
 
         "relative_delta_r_od2": {
+            "nticks": 15,
             "data": "relative_rate_delta[\"odor_2\"]",
             "color_map": "viridis",
             "title": "change in firing rate relative to baseline - odor2",
@@ -292,6 +301,7 @@
         },
 
         "rate_delta_odorsdiff": {
+            "nticks": 15,
             "data": "rate_delta_odorsdiff",
             "color_map": "viridis",
             "title": "firing rate difference between odors",
@@ -302,6 +312,7 @@
         },
 
         "relative_rate_delta_odorsdiff": {
+            "nticks": 15,
             "data": "relative_rate_delta_odorsdiff",
             "color_map": "viridis",
             "title": "relative firing rate difference between odors",
