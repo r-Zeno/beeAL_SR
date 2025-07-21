@@ -33,6 +33,7 @@ class Simulator:
         self.sdf_paras = self.parameters["analysis_parameters"]["sdf_parameters"]
         self.dist_paras = self.parameters["analysis_parameters"]["distance_parameters"]
         self.sim_paras = self.parameters["simulation_parameters"]
+        self.plot_paras = self.parameters["exp_plot_parameters"]
         self.spk_rec_steps = self.mod_paras["spk_rec_steps"] # ugly way to pass model recording steps to the Experimenter
         self.exp_1 = self.exp_paras["experiment_concurrent"]
         self.exp_2 = self.exp_paras["experiment_separate"]
@@ -94,12 +95,12 @@ class Simulator:
                 means_vpdist.append(dist_result)
         end = time.time()
         timetaken_an = round(end - start,2)
-        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s | {round(timetaken_sim/60)} min, time spent computing distances: {timetaken_an}s")
+        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s | {round(timetaken_sim/60,2)} min, time spent computing distances: {timetaken_an}s")
 
         if self.sim_paras["dist"]:
             exploratory_plots(self.folder, means_vpdist, single_vpdist, neurons2analyze, rate_delta, 
                               flat_rate_base, flat_rate_stim, relative_rate_delta, rate_delta_odorsdiff, 
-                              relative_rate_delta_odorsdiff, self.sim_paras, self.dist_paras)
+                              relative_rate_delta_odorsdiff, self.sim_paras, self.plot_paras)
         
         if self.sim_paras["dist"]:
             np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
