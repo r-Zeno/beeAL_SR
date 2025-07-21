@@ -320,7 +320,7 @@ class ModelBuilder:
         
     def _ln2pn(self):
 
-        g_ln2pn = {"g": 5.5e-5} # value from 'data' in fantoni's version, see if and how they are changed.
+        g_ln2pn = self.paras["lns_pns_g"] # value from 'data' in fantoni's version, see if and how they are changed.
         # Also present in 2023 version, modified by user specified weight 'ino', see "lns_pns_g"
 
         self.v_pn_ref = create_var_ref(self.pns, "V")
@@ -351,7 +351,7 @@ class ModelBuilder:
 
     def _ln2ln(self):
 
-        g_ln2ln = {"g": 2.0e-5} # value from 'data' in fantoni's version, see if and how they are changed
+        g_ln2ln = self.paras["lns_lns_g"] # value from 'data' in fantoni's version, see if and how they are changed
             # Also present in 2023 version, modified by user specified weight 'ino', see "lns_lns_g"
 
         self.v_ln_ref = create_var_ref(self.lns, "V")
