@@ -9,3 +9,4 @@ sim*/**
 .dockerignore
 parameters.json
 remote_run_sim.sh
+**/report*
