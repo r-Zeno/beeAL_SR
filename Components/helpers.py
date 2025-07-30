@@ -128,7 +128,7 @@ def glo_avg(sdf: np.ndarray, n):
 @jit(nopython=True)
 def vp_metric(train_1, train_2, cost):
     """
-    Computes the Victor-Purpura distance, given a pair of spike train timings and a cost (q*Dt), numba optimized.
+    Computes the Victor-Purpura distance normalized by spike count, given a pair of spike train timings and a cost (q*Dt), numba optimized.
     - train_1, train_2: timings of spikes
     - cost: the q value
     """
@@ -171,10 +171,10 @@ def data_prep4numba_distance(train_1, train_2, cost):
 def neuron_spikes_assemble(paths, paras, pad:bool):
 
     if pad:
-        padding = 200
+        padding = 200 # padding lenght selection should be in json but its never used (hardcoded false in simulator)
     else: padding = 0
 
-    # probably all these nested loops should be vectorized, but its the last thing to spend time on
+    # to vectorize if possible
     runs_baseline = {}
     runs_stimulation = {}
     for run in paths:
@@ -205,7 +205,7 @@ def neuron_spikes_assemble(paths, paras, pad:bool):
 
                         curr_odor_baseline[pop][key].append(t)
 
-                    elif paras["start_stim"] < t < paras["end_stim"]+padding:
+                    elif paras["start_stim"]-padding < t < paras["end_stim"]+padding:
 
                         if key not in curr_odor_stimulation[pop]:
                             curr_odor_stimulation[pop][key] = []
@@ -215,7 +215,7 @@ def neuron_spikes_assemble(paths, paras, pad:bool):
 
                 final_spk_baseline = {}
                 final_spk_stimulation = {}
-                for i in range(paras["pop_number"]):
+                for i in range(paras[pop][1]):
                     final_spk_baseline[i] = curr_odor_baseline[pop].get(i, [])
                     final_spk_stimulation[i] = curr_odor_stimulation[pop].get(i, [])
 

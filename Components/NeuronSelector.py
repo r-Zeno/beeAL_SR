@@ -105,7 +105,9 @@ class NeuronSelector:
             neurons2analyze, _ = self._select_neurons(self.rates)
         elif self.how2select["take_odor_selectives"]:
             neurons2analyze = self._take_odor_selective(self.rate_delta_odors_diff, self.noise_lvls)
-        else: raise ValueError("Must choose a selection criterion for the nuerons to use in dist analysis!")
+        # elif self.how2select["all"]:
+            # neurons2analyze =  to make it select all
+        else: raise ValueError("Must choose a selection criterion for the neurons to use in dist analysis!")
 
         return neurons2analyze
     
