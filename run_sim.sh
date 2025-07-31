@@ -30,24 +30,39 @@ LATEST_SIM_DIR=$(find "${EVAL_OUTPUT_DIR}" -mindepth 1 -maxdepth 1 -type d -prin
 if [ -d "$LATEST_SIM_DIR" ]; then
   echo "latest simulation directory: $LATEST_SIM_DIR"
 
-  cp "$LATEST_SIM_DIR"/mean_vp_dist_x_noiselvls.npy "${EVAL_LATEST_DIR}/meanvp_result.npy"
-  cp "$LATEST_SIM_DIR"/single_vp_dist_values.npy "${EVAL_LATEST_DIR}/singlevp_result.npy"
-  cp "$LATEST_SIM_DIR"/sim_settings.json "${EVAL_LATEST_DIR}/settings.json"
-  cp "$LATEST_SIM_DIR"/mean_distance.png "${EVAL_LATEST_DIR}/mean_distance.png"
-  cp "$LATEST_SIM_DIR"/selected_neurons.png "${EVAL_LATEST_DIR}/selected_neurons.png"
-  cp "$LATEST_SIM_DIR"/distances_single.png "${EVAL_LATEST_DIR}/distances_single.png"
-  cp "$LATEST_SIM_DIR"/delta_r_odor1.png "${EVAL_LATEST_DIR}/delta_r_odor1.png"
-  cp "$LATEST_SIM_DIR"/delta_r_odor2.png "${EVAL_LATEST_DIR}/delta_r_odor2.png"
-  cp "$LATEST_SIM_DIR"/relative_delta_r_odor1.png "${EVAL_LATEST_DIR}/relative_delta_r_odor1.png"
-  cp "$LATEST_SIM_DIR"/relative_delta_r_odor2.png "${EVAL_LATEST_DIR}/relative_delta_r_odor2.png"
-  cp "$LATEST_SIM_DIR"/rate_delta_odorsdiff.png "${EVAL_LATEST_DIR}/rate_delta_odorsdiff.png"
-  cp "$LATEST_SIM_DIR"/relative_rate_delta_odorsdiff.png "${EVAL_LATEST_DIR}/relative_rate_delta_odorsdiff.png"
-  cp "$LATEST_SIM_DIR"/flat_base_rate_od1.png "${EVAL_LATEST_DIR}/flat_base_rate_od1.png"
-  cp "$LATEST_SIM_DIR"/flat_base_rate_od2.png "${EVAL_LATEST_DIR}/flat_base_rate_od2.png"
-  cp "$LATEST_SIM_DIR"/flat_stim_rate_od1.png "${EVAL_LATEST_DIR}/flat_stim_rate_od1.png"
-  cp "$LATEST_SIM_DIR"/flat_stim_rate_od2.png "${EVAL_LATEST_DIR}/flat_stim_rate_od2.png"
+  if ! command -v jq &> /dev/null
+  then
+    echo "ERROR: jq is not installed"
+    exit 1
+  fi
 
-  echo "Latest files are ready for download in ${EVAL_LATEST_DIR}"
-else
-  echo "WARNING: Could not find any new simulation output directories."
-fi
+  cp "$LATEST_SIM_DIR"/sim_settings.json "${EVAL_LATEST_DIR}/"
+  cp "$LATEST_SIM_DIR"/plot_names.json "${EVAL_LATEST_DIR}/"
+  cp "$LATEST_SIM_DIR"/mean_vp_dist_x_noiselvls_*.npy "${EVAL_LATEST_DIR}/"
+  cp "$LATEST_SIM_DIR"/single_vp_dist_values_*.npy "${EVAL_LATEST_DIR}/"
+
+    PLOT_NAMES_JSON="${LATEST_SIM_DIR}/plot_names.json"
+
+    if [ -f "$PLOT_NAMES_JSON" ]; then
+      echo "Copying plots listed in plot_names.json..."
+
+      jq -r '.[] | .[]' "$PLOT_NAMES_JSON" | while read -r plot_filename; do
+
+        if [ -f "${LATEST_SIM_DIR}/${plot_filename}" ]; then
+          cp "${LATEST_SIM_DIR}/${plot_filename}" "${EVAL_LATEST_DIR}/"
+          echo "Copied ${plot_filename}"
+        else
+          echo "WARNING: Could not find plot file ${plot_filename}"
+        fi
+
+      done
+
+    else
+      echo "WARNING: plot_names.json not found. Cannot copy plot files."
+    fi
+
+    echo "Latest files are in ${EVAL_LATEST_DIR}"
+  else
+    echo "WARNING: Could not find any new simulation output directories."
+  fi
+  

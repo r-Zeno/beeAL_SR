@@ -15,7 +15,7 @@ class Simulator:
     def __init__(self, parameters_path:str):
 
         self.paras_path = parameters_path
-        self.sim_settings = dict()
+        self.sim_settings = {}
 
         with open(self.paras_path) as f:
             self.parameters = json.load(f)
@@ -90,27 +90,52 @@ class Simulator:
             means_vpdist = {}
 
             for path in data_paths:
-                
+                runname = os.path.basename(path)
+                single_vpdist[runname] = {}
+                means_vpdist[runname] = {}
+
                 for pop in self.pops:
 
                     vpdist_init = DistanceAnalyzer(path, self.dist_paras, pop, neurons2analyze[pop])
                     dist_result, dist_single = vpdist_init.compute_distance()
-                    single_vpdist[pop] = dist_single
-                    means_vpdist[pop] = dist_result
+                    single_vpdist[runname][pop] = dist_single
+                    means_vpdist[runname][pop] = dist_result
         end = time.time()
         timetaken_an = round(end - start,2)
         print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s | {round(timetaken_sim/60,2)} min, time spent computing distances: {timetaken_an}s")
 
         if self.sim_paras["dist"]:
-            exploratory_plots(
-                self.folder, self.pops, means_vpdist, single_vpdist, neurons2analyze, rate_delta, 
-                flat_rate_base, flat_rate_stim, relative_rate_delta, rate_delta_odorsdiff, 
-                relative_rate_delta_odorsdiff, self.sim_paras, self.plot_paras
-                )
+            plot_names = {}
 
             for pop in self.pops:
-                np.save(os.path.join(self.folder, f"mean_vp_dist_x_noiselvls_{pop}.npy"), means_vpdist[pop])
-                np.save(os.path.join(self.folder, f"single_vp_dist_values_{pop}.npy"), single_vpdist[pop])
 
+                curr_vpmean_runxpop = [means_vpdist[run][pop] for run in means_vpdist] 
+                curr_vpsingle_runxpop = [single_vpdist[run][pop] for run in single_vpdist]
+                curr_vpsingle_prep = np.array(curr_vpsingle_runxpop).T
+                curr_flatrate_base_od1 = flat_rate_base["odor_1"][pop]
+                curr_flatrate_base_od2 = flat_rate_base["odor_2"][pop]
+                curr_flatrate_stim_od1 = flat_rate_stim["odor_1"][pop]
+                curr_flatrate_stim_od2 = flat_rate_stim["odor_2"][pop]
+                curr_rate_delta_od1 = rate_delta["odor_1"][pop]
+                curr_rate_delta_od2 = rate_delta["odor_2"][pop]
+                curr_relrate_delta_od1 = relative_rate_delta["odor_1"][pop]
+                curr_relrate_delta_od2 = relative_rate_delta["odor_2"][pop]
+                curr_rate_delta_odorsdiff = rate_delta_odorsdiff[pop]
+                curr_relrate_delta_odorsdiff = relative_rate_delta_odorsdiff[pop]
+
+                p_names = exploratory_plots(
+                    self.folder, pop, curr_vpmean_runxpop, curr_vpsingle_prep, neurons2analyze[pop], 
+                    curr_flatrate_base_od1, curr_flatrate_base_od2, curr_flatrate_stim_od1, curr_flatrate_stim_od2, 
+                    curr_rate_delta_od1, curr_rate_delta_od2, curr_relrate_delta_od1, curr_relrate_delta_od2, 
+                    curr_rate_delta_odorsdiff, curr_relrate_delta_odorsdiff, self.sim_paras, self.plot_paras
+                    )
+
+                plot_names[pop] = p_names
+
+                np.save(os.path.join(self.folder, f"mean_vp_dist_x_noiselvls_{pop}.npy"), curr_vpmean_runxpop)
+                np.save(os.path.join(self.folder, f"single_vp_dist_values_{pop}.npy"), curr_vpsingle_runxpop)
+
+        with open(os.path.join(self.fodler, "plot_names.json"), "w") as fp:
+            json.dump(plot_names, fp, indent=4)
         with open(os.path.join(self.folder, "sim_settings.json"), "w") as fp:
             json.dump(self.parameters, fp, indent=4)

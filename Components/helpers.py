@@ -264,15 +264,20 @@ def fire_rate(data:dict, paras):
 
     return rates
 
-def exploratory_plots(path, pops, meanvp, singlevp, selected_neurons, rate_delta, flat_rate_base, flat_rate_stim, relative_rate_delta, rate_delta_odorsdiff, relative_rate_delta_odorsdiff, paras_sim:dict, paras_plots:dict):
+def exploratory_plots(
+        path, pop, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 
+        flat_rate_stim_od1, flat_rate_stim_od2, rate_delta_od1, rate_delta_od2, relative_rate_delta_od1, 
+        relative_rate_delta_od2, rate_delta_odorsdiff, relative_rate_delta_odorsdiff, 
+        paras_sim:dict, paras_plots:dict
+        ):
 
     x = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], paras_sim["steps"])
     fig1, ax1 = plt.subplots()
     ax1.scatter(x, meanvp)
-    ax1.set_title("mean distance at n levels")
+    ax1.set_title(f"mean distance at n levels ({pop})")
     ax1.set_ylabel("VP-distance (normalized)")
     ax1.set_xlabel("noise level (scaling)")
-    plt.savefig(os.path.join(path, "mean_distance.png"))
+    plt.savefig(os.path.join(path, f"mean_distance_{pop}.png"))
     plt.close()
 
     num_n = 800
@@ -287,26 +292,28 @@ def exploratory_plots(path, pops, meanvp, singlevp, selected_neurons, rate_delta
     plt.savefig(os.path.join(path, "selected_neurons.png"))
     plt.close()
 
+    plotnames = []
     for plot in paras_plots:
-        for pop in pops:
-            numticks = paras_plots[plot]["nticks"]
-            ncols = paras_sim["steps"]
-            tickpos = np.linspace(0, ncols-1, numticks, dtype=int)
-            labels = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], numticks)
-            for i in range(len(labels)):
-                labels[i] = round(labels[i], 2)
+        
+        p_name = eval(paras_plots[plot]["filename"])
+        numticks = paras_plots[plot]["nticks"]
+        ncols = paras_sim["steps"]
+        tickpos = np.linspace(0, ncols-1, numticks, dtype=int)
+        labels = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], numticks)
+        for i in range(len(labels)):
+            labels[i] = round(labels[i], 2)
 
-            if plot == "individual_distances":
-                singlevp = np.array(singlevp).T
+        fig, ax = plt.subplots()
+        heat = ax.imshow(eval(paras_plots[plot]["data"]), cmap=paras_plots[plot]["color_map"], aspect="auto")
+        fig.colorbar(heat, ax=ax)
+        ax.set_title(paras_plots[plot]["title"])
+        ax.set_ylabel(paras_plots[plot]["ylabel"])
+        ax.set_xlabel(paras_plots[plot]["xlabel"])
+        ax.set_xticks(tickpos)
+        ax.set_xticklabels(labels)
+        ax.tick_params(axis="x", labelrotation=45)
+        plt.savefig(os.path.join(path, p_name),dpi=paras_plots[plot]["dpi"])
+        plt.close()
+        plotnames.append(p_name)
 
-            fig, ax = plt.subplots()
-            heat = ax.imshow(eval(paras_plots[plot]["data"]), cmap=paras_plots[plot]["color_map"], aspect="auto")
-            fig.colorbar(heat, ax=ax)
-            ax.set_title(paras_plots[plot]["title"])
-            ax.set_ylabel(paras_plots[plot]["ylabel"])
-            ax.set_xlabel(paras_plots[plot]["xlabel"])
-            ax.set_xticks(tickpos)
-            ax.set_xticklabels(labels)
-            ax.tick_params(axis="x", labelrotation=45)
-            plt.savefig(os.path.join(path, eval(paras_plots[plot]["filename"])),dpi=paras_plots[plot]["dpi"])
-            plt.close()
+    return plotnames
