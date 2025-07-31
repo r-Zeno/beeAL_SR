@@ -271,14 +271,18 @@ def exploratory_plots(
         paras_sim:dict, paras_plots:dict
         ):
 
+    plotnames = []
+
     x = np.linspace(paras_sim["noiselvl_min"], paras_sim["noiselvl_max"], paras_sim["steps"])
     fig1, ax1 = plt.subplots()
     ax1.scatter(x, meanvp)
     ax1.set_title(f"mean distance at n levels ({pop})")
     ax1.set_ylabel("VP-distance (normalized)")
     ax1.set_xlabel("noise level (scaling)")
-    plt.savefig(os.path.join(path, f"mean_distance_{pop}.png"))
+    mname = f"mean_distance_{pop}.png"
+    plt.savefig(os.path.join(path, mname))
     plt.close()
+    plotnames.append(mname)
 
     num_n = pop_nums[pop][1]
     neurons = np.zeros(num_n)
@@ -286,16 +290,17 @@ def exploratory_plots(
     xn = np.arange(num_n)
     fig2, ax2 = plt.subplots()
     ax2.plot(xn, neurons)
-    ax2.set_title("selected neurons")
+    ax2.set_title(f"selected neurons_{pop}")
     ax2.set_yticks([0,1])
     ax2.set_xlabel("neurons")
-    plt.savefig(os.path.join(path, "selected_neurons.png"))
+    selname = f"selected_neurons_{pop}.png"
+    plt.savefig(os.path.join(path, selname))
     plt.close()
+    plotnames.append(selname)
 
-    plotnames = []
     for plot in paras_plots:
 
-        p_name = eval(paras_plots[plot]["filename"])
+        p_fname = eval(paras_plots[plot]["filename"])
         numticks = paras_plots[plot]["nticks"]
         ncols = paras_sim["steps"]
         tickpos = np.linspace(0, ncols-1, numticks, dtype=int)
@@ -306,14 +311,14 @@ def exploratory_plots(
         fig, ax = plt.subplots()
         heat = ax.imshow(eval(paras_plots[plot]["data"]), cmap=paras_plots[plot]["color_map"], aspect="auto")
         fig.colorbar(heat, ax=ax)
-        ax.set_title(paras_plots[plot]["title"])
+        ax.set_title(eval(paras_plots[plot]["title"]))
         ax.set_ylabel(paras_plots[plot]["ylabel"])
         ax.set_xlabel(paras_plots[plot]["xlabel"])
         ax.set_xticks(tickpos)
         ax.set_xticklabels(labels)
         ax.tick_params(axis="x", labelrotation=45)
-        plt.savefig(os.path.join(path, p_name),dpi=paras_plots[plot]["dpi"])
+        plt.savefig(os.path.join(path, p_fname),dpi=paras_plots[plot]["dpi"])
         plt.close()
-        plotnames.append(p_name)
+        plotnames.append(p_fname)
 
     return plotnames

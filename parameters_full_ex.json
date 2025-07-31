@@ -3,13 +3,14 @@
 
         "noiselvl_min": 0.0,
         "noiselvl_max": 5.0,
-        "steps": 1000,
+        "steps": 10,
         "sdf": false,
         "dist": true,
         "selection_criterion" :{
             "only0noise": false,
             "select_overall": true,
-            "take_odor_selectives": false
+            "take_odor_selectives": false,
+            "all": false
         },
         "debugmode": false
 
@@ -124,14 +125,18 @@
             "E": 0.0
         },
         
-        "lns_pns_g": 5.5e-05,
-        
+        "lns_pns_g": {
+            "g": 5.5e-05
+        },
+
         "lns_pns_post_params": {
             "tau": 20.0,
             "E": -80.0
         },
         
-        "lns_lns_g": 2e-05,
+        "lns_lns_g": {
+            "g": 2e-05
+        },
         
         "lns_lns_post_params": {
             "tau": 20.0,
@@ -205,98 +210,98 @@
             "nticks": 15,
             "data": "singlevp",
             "color_map": "viridis",
-            "title": "Distance values per neuron",
+            "title": "f\"Distance values per neuron - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "distances_single.png",
+            "filename": "f\"distances_single_{pop}.png\"",
             "dpi": 100
         },
 
         "baseline_r_od1": {
             "nticks": 15,
-            "data": "flat_rate_base[\"odor_1\"]",
+            "data": "flat_rate_base_od1",
             "color_map": "viridis",
-            "title": "baseline firing rate - odor1",
+            "title": "f\"baseline firing rate - odor1 - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "flat_base_rate_od1.png",
+            "filename": "f\"flat_base_rate_od1_{pop}.png\"",
             "dpi": 100
         },
 
         "baseline_r_od2": {
             "nticks": 15,
-            "data": "flat_rate_base[\"odor_2\"]",
+            "data": "flat_rate_base_od2",
             "color_map": "viridis",
-            "title": "baseline firing rate - odor2",
+            "title": "f\"baseline firing rate - odor2 - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "flat_base_rate_od2.png",
+            "filename": "f\"flat_base_rate_od2_{pop}.png\"",
             "dpi": 100
         },
 
         "stimulation_r_od1": {
             "nticks": 15,
-            "data": "flat_rate_stim[\"odor_1\"]",
+            "data": "flat_rate_stim_od1",
             "color_map": "viridis",
-            "title": "stimulation firing rate - odor1",
+            "title": "f\"stimulation firing rate - odor1 - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "flat_stim_rate_od1.png",
+            "filename": "f\"flat_stim_rate_od1_{pop}.png\"",
             "dpi": 100
         },
 
         "stimulation_r_od2": {
             "nticks": 15,
-            "data": "flat_rate_stim[\"odor_2\"]",
+            "data": "flat_rate_stim_od2",
             "color_map": "viridis",
-            "title": "stimulation firing rate - odor2",
+            "title": "f\"stimulation firing rate - odor2 - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "flat_stim_rate_od2.png",
+            "filename": "f\"flat_stim_rate_od2_{pop}.png\"",
             "dpi": 100
         },
 
         "delta_r_od1": {
             "nticks": 15,
-            "data": "rate_delta[\"odor_1\"]",
+            "data": "rate_delta_od1",
             "color_map": "viridis",
-            "title": "change in firing rate - odor1",
+            "title": "f\"change in firing rate - odor1 - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "delta_r_odor1.png",
+            "filename": "f\"delta_r_odor1_{pop}.png\"",
             "dpi": 100
         },
 
         "delta_r_od2": {
             "nticks": 15,
-            "data": "rate_delta[\"odor_2\"]",
+            "data": "rate_delta_od2",
             "color_map": "viridis",
-            "title": "change in firing rate - odor2",
+            "title": "f\"change in firing rate - odor2 - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "delta_r_odor2.png",
+            "filename": "f\"delta_r_odor2_{pop}.png\"",
             "dpi": 100
         },
 
         "relative_delta_r_od1": {
             "nticks": 15,
-            "data": "relative_rate_delta[\"odor_1\"]",
+            "data": "relative_rate_delta_od1",
             "color_map": "viridis",
-            "title": "change in firing rate relative to baseline - odor1",
+            "title": "f\"change in firing rate relative to baseline - odor1 - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "relative_delta_r_odor1.png",
+            "filename": "f\"relative_delta_r_odor1_{pop}.png\"",
             "dpi": 100
         },
 
         "relative_delta_r_od2": {
             "nticks": 15,
-            "data": "relative_rate_delta[\"odor_2\"]",
+            "data": "relative_rate_delta_od2",
             "color_map": "viridis",
-            "title": "change in firing rate relative to baseline - odor2",
+            "title": "f\"change in firing rate relative to baseline - odor2 - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "relative_delta_r_odor2.png",
+            "filename": "f\"relative_delta_r_odor2_{pop}.png\"",
             "dpi": 100
         },
 
@@ -304,10 +309,10 @@
             "nticks": 15,
             "data": "rate_delta_odorsdiff",
             "color_map": "viridis",
-            "title": "firing rate difference between odors",
+            "title": "f\"firing rate difference between odors - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "rate_delta_odorsdiff.png",
+            "filename": "f\"rate_delta_odorsdiff_{pop}.png\"",
             "dpi": 100
         },
 
@@ -315,10 +320,10 @@
             "nticks": 15,
             "data": "relative_rate_delta_odorsdiff",
             "color_map": "viridis",
-            "title": "relative firing rate difference between odors",
+            "title": "f\"relative firing rate difference between odors - {pop}",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
-            "filename": "relative_rate_delta_odorsdiff.png",
+            "filename": "f\"relative_rate_delta_odorsdiff_{pop}.png\"",
             "dpi": 100
         }
 
@@ -353,8 +358,12 @@
 
         "distance_parameters": {
 
-            "which_pop": ["pn"],
-            "pop_number": 800,
+            "which_pop": {
+
+                "pn": ["pn", 800],
+                "ln": ["ln", 4000]
+
+            },
             "which_metric": ["vp"],
             "cost_vp": 0.001,
             "odors": ["odor_1", "odor_2"],
