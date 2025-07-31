@@ -23,7 +23,7 @@ class RateAnalyzer:
             relative_rate_deltas[odor] = {}
             flat_rate_base[odor] = {}
             flat_rate_stim[odor] = {}
-            
+
             for pop in pops:
                 n_neurons = pops[pop][1]
 
@@ -40,6 +40,8 @@ class RateAnalyzer:
         for run in runs:
             for odor in odors:
                 for pop in pops:
+                    n_neurons = pops[pop][1]
+                    
                     for neuron in range(n_neurons):
 
                         curr_base_rate = self.rates["baseline"][run][odor][pop][neuron]
