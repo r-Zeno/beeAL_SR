@@ -124,7 +124,7 @@ class Simulator:
                 curr_relrate_delta_odorsdiff = relative_rate_delta_odorsdiff[pop]
 
                 p_names = exploratory_plots(
-                    self.folder, pop, curr_vpmean_runxpop, curr_vpsingle_prep, neurons2analyze[pop], 
+                    self.folder, pop, self.pops, curr_vpmean_runxpop, curr_vpsingle_prep, neurons2analyze[pop], 
                     curr_flatrate_base_od1, curr_flatrate_base_od2, curr_flatrate_stim_od1, curr_flatrate_stim_od2, 
                     curr_rate_delta_od1, curr_rate_delta_od2, curr_relrate_delta_od1, curr_relrate_delta_od2, 
                     curr_rate_delta_odorsdiff, curr_relrate_delta_odorsdiff, self.sim_paras, self.plot_paras

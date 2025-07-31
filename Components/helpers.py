@@ -265,7 +265,7 @@ def fire_rate(data:dict, paras):
     return rates
 
 def exploratory_plots(
-        path, pop, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 
+        path, pop, pop_nums, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 
         flat_rate_stim_od1, flat_rate_stim_od2, rate_delta_od1, rate_delta_od2, relative_rate_delta_od1, 
         relative_rate_delta_od2, rate_delta_odorsdiff, relative_rate_delta_odorsdiff, 
         paras_sim:dict, paras_plots:dict
@@ -280,7 +280,7 @@ def exploratory_plots(
     plt.savefig(os.path.join(path, f"mean_distance_{pop}.png"))
     plt.close()
 
-    num_n = 800
+    num_n = pop_nums[pop][1]
     neurons = np.zeros(num_n)
     neurons[selected_neurons] = 1
     xn = np.arange(num_n)
@@ -294,7 +294,7 @@ def exploratory_plots(
 
     plotnames = []
     for plot in paras_plots:
-        
+
         p_name = eval(paras_plots[plot]["filename"])
         numticks = paras_plots[plot]["nticks"]
         ncols = paras_sim["steps"]
