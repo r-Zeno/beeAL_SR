@@ -11,7 +11,6 @@ class RateAnalyzer:
 
         runs = list(self.rates["baseline"].keys())
         n_runs = len(runs)
-        n_neurons = self.paras["pop_number"]
         odors = self.paras["odors"]
         pops = self.paras["which_pop"]
 
@@ -20,10 +19,18 @@ class RateAnalyzer:
         flat_rate_base = {}
         flat_rate_stim = {}
         for odor in odors:
-            rate_deltas[odor] = np.zeros((n_neurons, n_runs), dtype=float)
-            relative_rate_deltas[odor] = np.zeros((n_neurons, n_runs), dtype=float)
-            flat_rate_base[odor] = np.zeros((n_neurons, n_runs), dtype=float)
-            flat_rate_stim[odor] = np.zeros((n_neurons, n_runs), dtype=float)
+            rate_deltas[odor] = {}
+            relative_rate_deltas[odor] = {}
+            flat_rate_base[odor] = {}
+            flat_rate_stim[odor] = {}
+            
+            for pop in pops:
+                n_neurons = pops[pop][1]
+
+                rate_deltas[odor][pop] = np.zeros((n_neurons, n_runs), dtype=float)
+                relative_rate_deltas[odor][pop] = np.zeros((n_neurons, n_runs), dtype=float)
+                flat_rate_base[odor][pop] = np.zeros((n_neurons, n_runs), dtype=float)
+                flat_rate_stim[odor][pop] = np.zeros((n_neurons, n_runs), dtype=float)
 
         run_idx = {}
         for i, run in enumerate(runs):
@@ -32,7 +39,7 @@ class RateAnalyzer:
         # this could be vectorized, but won't do it now
         for run in runs:
             for odor in odors:
-                for pop in pops: # ! delta values would get overwritten if more than 1 pop !
+                for pop in pops:
                     for neuron in range(n_neurons):
 
                         curr_base_rate = self.rates["baseline"][run][odor][pop][neuron]
@@ -44,11 +51,11 @@ class RateAnalyzer:
                         else: curr_rel_delta = (curr_stim_rate - curr_base_rate)/(curr_stim_rate + curr_base_rate) # avoids dividing by 0
 
                         idx = run_idx[run]
-                        rate_deltas[odor][neuron, idx] = curr_delta
-                        relative_rate_deltas[odor][neuron, idx] = curr_rel_delta
+                        rate_deltas[odor][pop][neuron, idx] = curr_delta
+                        relative_rate_deltas[odor][pop][neuron, idx] = curr_rel_delta
 
-                        flat_rate_base[odor][neuron, idx] = curr_base_rate
-                        flat_rate_stim[odor][neuron, idx] = curr_stim_rate
+                        flat_rate_base[odor][pop][neuron, idx] = curr_base_rate
+                        flat_rate_stim[odor][pop][neuron, idx] = curr_stim_rate
 
         return rate_deltas, relative_rate_deltas, flat_rate_base, flat_rate_stim
     
@@ -56,19 +63,25 @@ class RateAnalyzer:
 
         runs = list(self.rates["baseline"].keys())
         n_runs = len(runs)
-        n_neurons = self.paras["pop_number"]
         pops = self.paras["which_pop"]
 
-        rate_delta_odors = np.zeros((n_neurons, n_runs), dtype=float)
-        relative_rate_delta_odors = np.zeros((n_neurons, n_runs), dtype=float)
+        rate_delta_odors = {}
+        relative_rate_delta_odors = {}
+        for pop in pops:
+            n_neurons = pops[pop][1]
+
+            rate_delta_odors[pop] = np.zeros((n_neurons, n_runs), dtype=float)
+            relative_rate_delta_odors[pop] = np.zeros((n_neurons, n_runs), dtype=float)
 
         run_idx = {}
         for i, run in enumerate(runs):
             run_idx[run] = i
 
-        # this could be vectorized, but won't do it now
+        # this could be vectorized
         for run in runs:
-            for pop in pops: # ! delta values would get overwritten if more than 1 pop !
+            for pop in pops:
+                n_neurons = pops[pop][1]
+
                 for neuron in range(n_neurons):
 
                     curr_base_rate_od1 = self.rates["baseline"][run]["odor_1"][pop][neuron]
@@ -87,8 +100,8 @@ class RateAnalyzer:
                     curr_rel_delta_odors = abs(curr_rel_delta_od1 - curr_rel_delta_od2) # don't care about the direction of the difference (od1/od2)
 
                     idx = run_idx[run]
-                    rate_delta_odors[neuron, idx] = curr_delta_odors
-                    relative_rate_delta_odors[neuron, idx] = curr_rel_delta_odors
+                    rate_delta_odors[pop][neuron, idx] = curr_delta_odors
+                    relative_rate_delta_odors[pop][neuron, idx] = curr_rel_delta_odors
 
         return rate_delta_odors, relative_rate_delta_odors
 

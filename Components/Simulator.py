@@ -39,6 +39,7 @@ class Simulator:
         self.exp_2 = self.exp_paras["experiment_separate"]
         self.debugmode = self.sim_paras["debugmode"]
         self.selection_criterion = self.sim_paras["selection_criterion"]
+        self.pops = self.dist_paras["which_pop"]
 
         self.noise_lvls = np.linspace(self.sim_paras["noiselvl_min"], self.sim_paras["noiselvl_max"], self.sim_paras["steps"])
 
@@ -55,10 +56,6 @@ class Simulator:
         build_plan = ModelBuilder(self.mod_paras)
         model = build_plan.build()
 
-        if self.sim_paras["dist"]:
-            single_vpdist = [] # for debugging
-            means_vpdist = []
-
         data_paths = []
         run = 0
         for lvl in self.noise_lvls:
@@ -72,6 +69,7 @@ class Simulator:
         print(f"Simulations ended, it took {timetaken_sim}")
 
         spk_split = neuron_spikes_assemble(data_paths, self.dist_paras, pad=False)
+
         rates = fire_rate(spk_split, self.dist_paras)
 
         rate_init = RateAnalyzer(rates, self.dist_paras)
@@ -86,25 +84,33 @@ class Simulator:
             for path in data_paths:
                 sdf = SDFplotter(path, self.sdf_paras, self.mod_paras)
                 sdf.plot()
-        
+
         if self.sim_paras["dist"]:
+            single_vpdist = {} # for debugging
+            means_vpdist = {}
+
             for path in data_paths:
-                vpdist_init = DistanceAnalyzer(path, self.dist_paras, neurons2analyze)
-                dist_result, dist_single = vpdist_init.compute_distance()
-                single_vpdist.append(dist_single) # cant append to a dict
-                means_vpdist.append(dist_result)
+                
+                for pop in self.pops:
+
+                    vpdist_init = DistanceAnalyzer(path, self.dist_paras, pop, neurons2analyze[pop])
+                    dist_result, dist_single = vpdist_init.compute_distance()
+                    single_vpdist[pop] = dist_single
+                    means_vpdist[pop] = dist_result
         end = time.time()
         timetaken_an = round(end - start,2)
         print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s | {round(timetaken_sim/60,2)} min, time spent computing distances: {timetaken_an}s")
 
         if self.sim_paras["dist"]:
-            exploratory_plots(self.folder, means_vpdist, single_vpdist, neurons2analyze, rate_delta, 
-                              flat_rate_base, flat_rate_stim, relative_rate_delta, rate_delta_odorsdiff, 
-                              relative_rate_delta_odorsdiff, self.sim_paras, self.plot_paras)
-        
-        if self.sim_paras["dist"]:
-            np.save(os.path.join(self.folder, "mean_vp_dist_x_noiselvls.npy"), means_vpdist)
-            np.save(os.path.join(self.folder, "single_vp_dist_values.npy"), single_vpdist)
+            exploratory_plots(
+                self.folder, self.pops, means_vpdist, single_vpdist, neurons2analyze, rate_delta, 
+                flat_rate_base, flat_rate_stim, relative_rate_delta, rate_delta_odorsdiff, 
+                relative_rate_delta_odorsdiff, self.sim_paras, self.plot_paras
+                )
 
-        with open(os.path.join(self.folder, 'sim_settings.json'), 'w') as fp:
+            for pop in self.pops:
+                np.save(os.path.join(self.folder, f"mean_vp_dist_x_noiselvls_{pop}.npy"), means_vpdist[pop])
+                np.save(os.path.join(self.folder, f"single_vp_dist_values_{pop}.npy"), single_vpdist[pop])
+
+        with open(os.path.join(self.folder, "sim_settings.json"), "w") as fp:
             json.dump(self.parameters, fp, indent=4)

@@ -6,11 +6,13 @@ from helpers import data_prep4numba_distance
 
 class DistanceAnalyzer:
 
-    def __init__(self, data_path, an_paras:dict, neurons_idx):
+    def __init__(self, data_path, an_paras:dict, pop, neurons_idx):
 
         self.path = data_path
         self.paras = an_paras
         self.neurons_idx = neurons_idx
+        self.pop = pop
+        self.n_neurons = self.paras["which_pop"][self.pop][1]
         self.cost_vp = self.paras["cost_vp"]
         # here dinamically retrieve data paths based on the number of folders, to allow to add more odors later on
         # is it unnecessary?
@@ -28,13 +30,11 @@ class DistanceAnalyzer:
         self.spike_ids = []
         for odor in odors_paths:
 
-            for pop in self.paras["which_pop"]:
+            curr_spike_t = np.load(os.path.join(odors_paths[odor], f"{self.pop}_spike_t.npy"))
+            curr_spike_id = np.load(os.path.join(odors_paths[odor], f"{self.pop}_spike_id.npy"))
 
-                curr_spike_t = np.load(os.path.join(odors_paths[odor], f"{pop}_spike_t.npy"))
-                curr_spike_id = np.load(os.path.join(odors_paths[odor], f"{pop}_spike_id.npy"))
-
-                self.spike_ts.append(curr_spike_t)
-                self.spike_ids.append(curr_spike_id)
+            self.spike_ts.append(curr_spike_t)
+            self.spike_ids.append(curr_spike_id)
                 
         print(self.spike_ts)
         print(self.spike_ids)
@@ -69,7 +69,7 @@ class DistanceAnalyzer:
 
         for od_dict in spikes_idxt:
             
-            for i in range(self.paras["pop_number"]):
+            for i in range(self.n_neurons):
                 
                 n_id = int(i)
                 n_id_exist = spikes_idxt[od_dict].get(n_id)
