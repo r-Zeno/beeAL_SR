@@ -188,7 +188,7 @@ def neuron_spikes_assemble(paths, paras, pad:bool):
             curr_odor_baseline = {}
             curr_odor_stimulation = {}
 
-            for pop in paras["which_pop"]: # useless for now since only 1 pop, included for scalability
+            for pop in paras["which_pop"]:
 
                 curr_spike_ts = np.load(os.path.join(run, odor, f"{pop}_spike_t.npy"))
                 curr_spike_ids = np.load(os.path.join(run, odor, f"{pop}_spike_id.npy"))
@@ -215,7 +215,7 @@ def neuron_spikes_assemble(paths, paras, pad:bool):
 
                 final_spk_baseline = {}
                 final_spk_stimulation = {}
-                for i in range(paras[pop][1]):
+                for i in range(paras["which_pop"][pop][1]):
                     final_spk_baseline[i] = curr_odor_baseline[pop].get(i, [])
                     final_spk_stimulation[i] = curr_odor_stimulation[pop].get(i, [])
 

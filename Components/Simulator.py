@@ -91,7 +91,7 @@ class Simulator:
             for path in data_paths:
                 vpdist_init = DistanceAnalyzer(path, self.dist_paras, neurons2analyze)
                 dist_result, dist_single = vpdist_init.compute_distance()
-                single_vpdist.append(dist_single)
+                single_vpdist.append(dist_single) # cant append to a dict
                 means_vpdist.append(dist_result)
         end = time.time()
         timetaken_an = round(end - start,2)

@@ -24,89 +24,72 @@ class DistanceAnalyzer:
             else: raise TypeError("Data folder structure is not what was expected!")
         print("all good, starting distance analysis...")
 
-        self.spike_ts = {}
-        self.spike_ids = {}
-        i = 0
+        self.spike_ts = []
+        self.spike_ids = []
         for odor in odors_paths:
-            i += 1
-            curr_od = f"od_{i}"
-            self.spike_ts[curr_od] = {}
-            self.spike_ids[curr_od] = {}
 
             for pop in self.paras["which_pop"]:
 
                 curr_spike_t = np.load(os.path.join(odors_paths[odor], f"{pop}_spike_t.npy"))
                 curr_spike_id = np.load(os.path.join(odors_paths[odor], f"{pop}_spike_id.npy"))
 
-                self.spike_ts[curr_od][pop] = curr_spike_t
-                self.spike_ids[curr_od][pop] = curr_spike_id
+                self.spike_ts.append(curr_spike_t)
+                self.spike_ids.append(curr_spike_id)
                 
         print(self.spike_ts)
         print(self.spike_ids)
 
     def _coupler(self):
 
-        spikes_pop = {}
-        for od, pops in self.spike_ts.items():
-            spikes_pop[od] = {}
+        spikes_pop = []
+        for od_trial in range(len(self.spike_ts)):
+            
+            spike_ts = self.spike_ts[od_trial]
+            spike_ids = self.spike_ids[od_trial]
 
-            for pop, spike_ts in pops.items():
-
-                spike_ids = self.spike_ids[od][pop]
-
-                time_select = (spike_ts >= 1000) & (spike_ts <= 4000) # only take spikes during odor stim
-                filtered_ts = spike_ts[time_select]
-                filtered_ids = spike_ids[time_select]
-                curr_idxt = np.stack((filtered_ids, filtered_ts), 1)
-
-                spikes_pop[od][pop] = curr_idxt
+            time_mask = (spike_ts >= 1000) & (spike_ts <= 4000)
+            filtered_ts = spike_ts[time_mask]
+            filtered_ids = spike_ids[time_mask]
+            curr_idxt = np.stack((filtered_ids, filtered_ts), 1)
+            spikes_pop.append(curr_idxt)
 
         spikes_idxt = {}
         i = 0
-        for od, pops in spikes_pop.items():
-            spikes_idxt[od] = {}
+        for od_array in spikes_pop:
+            i += 1
+            spikes_idxt[f"od_{i}"] = {}
             
-            for pop, joined_spks in pops.items():
-                spikes_idxt[od][pop] = {}
-
-                for id, t in joined_spks:
-                    key = int(id)
-                    
-                    if key not in spikes_idxt[od][pop]:
-                        spikes_idxt[od][pop][key] = []
-                        
-                    spikes_idxt[od][pop][key].append(t)
-
-        for od, pops in spikes_idxt.items():
-            
-            for pop, ids in pops.items():
-
-                for i in range(self.paras["which_pop"][pop][1]):
-                    
-                    n_id = int(i)
-                    n_id_exist = spikes_idxt[od][pop].get(n_id)
-                    
-                    if n_id_exist is None:
-                        spikes_idxt[od][pop][n_id] = []
+            for id, t in od_array:
+                key = int(id)
                 
-                spikes_idxt[od][pop] = dict(sorted(spikes_idxt[od][pop].items()))
+                if id not in spikes_idxt[f"od_{i}"]:
+                    spikes_idxt[f"od_{i}"][key] = []
+                    
+                spikes_idxt[f"od_{i}"][key].append(t)
+
+        for od_dict in spikes_idxt:
+            
+            for i in range(self.paras["pop_number"]):
+                
+                n_id = int(i)
+                n_id_exist = spikes_idxt[od_dict].get(n_id)
+                
+                if n_id_exist is None:
+                    spikes_idxt[od_dict][n_id] = []
+            
+            spikes_idxt[od_dict] = dict(sorted(spikes_idxt[od_dict].items()))
 
         spikes_coupled = {}
-        for pop in spikes_idxt["od_1"]:
-            spikes_coupled[pop] = {}
-
-            for i in range(len(spikes_idxt["od_1"][pop])):
+        if len(spikes_idxt["od_1"]) == len(spikes_idxt["od_2"]):
+                
+            for i in range(len(spikes_idxt["od_1"])):
                 key = int(i)
-                spikes_coupled[pop][key] = (spikes_idxt["od_1"][pop][key], spikes_idxt["od_2"][pop][key])
+                spikes_coupled[key] = (spikes_idxt["od_1"][key], spikes_idxt["od_2"][key])
+        else: raise TypeError("Neuron number for the 2 runs does not match, something went very wrong!")
 
-        spikes_coupled_corr = {} # start by checking this
-        for pop in spikes_coupled:
-            spikes_coupled_corr[pop] = {}
-
-            for pop_idx, idxs in self.neurons_idx.items():
-
-                for idx in idxs:
-                    spikes_coupled_corr[pop][idx] = spikes_coupled[pop][idx]
+        spikes_coupled_corr = {}
+        for idx in self.neurons_idx:
+            spikes_coupled_corr[idx] = spikes_coupled[idx]
 
         print(f"analyzing distance for {len(spikes_coupled_corr)} neurons")
         return spikes_coupled_corr
