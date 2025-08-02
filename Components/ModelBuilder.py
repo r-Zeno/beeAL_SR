@@ -24,6 +24,7 @@ class ModelBuilder:
         except: print("Warning: could not set CUDA backends")
 
         self.paras = paras
+        self.lif_wback = self.paras["I_background"]
         self.dt = dt
 
         self.model = GeNNModel("double", "beeAL", backend="CUDA") # for linux add backend="CUDA"
@@ -433,27 +434,51 @@ class ModelBuilder:
 
     def _lifi_builder(self):
 
-        adapt_lifi = pygenn.create_neuron_model(
-            "adaptive_LIF",
-            params = [
-                "C_mem", "V_reset", "V_thresh", "V_leak", "g_leak", "r_scale", "g_adapt", "V_adapt", "tau_adapt", "noise_A"
-            ],
-            vars = [
-                ("V", "scalar"), ("a", "scalar")
-            ],
-            # in the Fantoni version there is also an eq for g_adapt and g_leak that are changed depending on Temperature. To add if temperature is to be added
-            sim_code = """
-            V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn + noise_A*gennrand_normal())*dt/C_mem;
-            a += -a*dt/tau_adapt;
-            """,
-            threshold_condition_code = """
-            V >= V_thresh
-            """,
-            reset_code = """
-            V = V_reset;
-            a += 0.5;
-            """
-        )
+        if self.lif_wback:
+            adapt_lifi = pygenn.create_neuron_model(
+                "adaptive_LIF",
+                params = [
+                    "C_mem", "V_reset", "V_thresh", "V_leak", "g_leak", "r_scale", "g_adapt", "V_adapt", "tau_adapt", "noise_A", "I_background"
+                ],
+                vars = [
+                    ("V", "scalar"), ("a", "scalar")
+                ],
+                # in the Fantoni version there is also an eq for g_adapt and g_leak that are changed depending on Temperature. To add if temperature is to be added
+                sim_code = """
+                V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn + noise_A*gennrand_normal() + I_background)*dt/C_mem;
+                a += -a*dt/tau_adapt;
+                """,
+                threshold_condition_code = """
+                V >= V_thresh
+                """,
+                reset_code = """
+                V = V_reset;
+                a += 0.5;
+                """
+            )
+
+        elif not self.lif_wback:
+            adapt_lifi = pygenn.create_neuron_model(
+                "adaptive_LIF",
+                params = [
+                    "C_mem", "V_reset", "V_thresh", "V_leak", "g_leak", "r_scale", "g_adapt", "V_adapt", "tau_adapt", "noise_A"
+                ],
+                vars = [
+                    ("V", "scalar"), ("a", "scalar")
+                ],
+                # in the Fantoni version there is also an eq for g_adapt and g_leak that are changed depending on Temperature. To add if temperature is to be added
+                sim_code = """
+                V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn + noise_A*gennrand_normal())*dt/C_mem;
+                a += -a*dt/tau_adapt;
+                """,
+                threshold_condition_code = """
+                V >= V_thresh
+                """,
+                reset_code = """
+                V = V_reset;
+                a += 0.5;
+                """
+            )
 
         return adapt_lifi
 
