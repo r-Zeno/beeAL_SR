@@ -125,7 +125,8 @@ def glo_avg(sdf: np.ndarray, n):
         gsdf[:,i]= np.mean(sdf[:,n*i:n*(i+1)],axis=1)
     return gsdf
 
-@jit(nopython=True)
+@jit(nopython=True) # next step is writing a CUDA kernel for this, passing spike data to c++ code,
+# as it takes too much (at least as long as the sim itself) when analyzing all the neurons from all pops
 def vp_metric(train_1, train_2, cost):
     """
     Computes the Victor-Purpura distance normalized by spike count, given a pair of spike train timings and a cost (q*Dt), numba optimized.
@@ -263,6 +264,37 @@ def fire_rate(data:dict, paras):
                         rates[state][run_n][odor_n][pop_n][neuron] = curr_rate
 
     return rates
+
+def dict2np_converter(data:dict):
+    """
+    to be used everytime data is to be passed to c++/CUDA code for fast computing.
+    For now it only serves the use of passing rates.
+    Will need to specify grouping behavior, as it may be convenient to create a 2d array for each pop
+    or to store all pop together.
+    """
+    # would be nice to add an intelligent unrolling of the dict, for now it works assuming it follows
+    # the structure that is used for all dicts here
+
+    # hardcoding everything, just to start
+    # should handle multiple pops, creating a matrix for each!
+    pop = "pns" # check the real name of the dict key
+    states = ["baseline", "stimulation"]
+    n_neurons = 800
+    n_runs = 1000
+    n_stimuli = 2
+
+    data_extr = np.zeros((n_neurons, n_runs*n_stimuli))
+
+    for state in states:
+        for run in range(n_runs):
+            for odor in range(n_stimuli):
+
+                col_idx = odor*n_runs + run
+
+                for neuron in range(n_neurons):
+
+                    rate = data[state][run][odor][pop][neuron]
+                    data_extr[neuron, col_idx] = rate
 
 def exploratory_plots(
         path, pop, pop_nums, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 
