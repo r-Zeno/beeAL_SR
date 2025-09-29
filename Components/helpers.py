@@ -265,7 +265,7 @@ def fire_rate(data:dict, paras):
 
     return rates
 
-def dict2np_converter(data:dict):
+def dict2np_converter(data:dict, folder):
     """
     to be used everytime data is to be passed to c++/CUDA code for fast computing.
     For now it only serves the use of passing rates.
@@ -295,6 +295,8 @@ def dict2np_converter(data:dict):
 
                     rate = data[state][run][odor][pop][neuron]
                     data_extr[neuron, col_idx] = rate
+
+    np.save(os.path.join(folder, "neuron_rates.npy"), data_extr)
 
 def exploratory_plots(
         path, pop, pop_nums, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 
