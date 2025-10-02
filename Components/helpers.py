@@ -283,20 +283,29 @@ def dict2np_converter(data:dict, folder):
     n_runs = 1000
     n_stimuli = 2
 
-    data_extr = np.zeros((n_neurons, n_runs*n_stimuli))
+    data_extr_od1 = np.zeros((n_neurons, n_runs))
+    data_extr_od2 = np.zeros((n_neurons, n_runs))
 
     for state in states:
         for run in range(n_runs):
             for odor in range(n_stimuli):
-
-                col_idx = odor*n_runs + run
+                col_idx = run
 
                 for neuron in range(n_neurons):
 
                     rate = data[state][run][odor][pop][neuron]
-                    data_extr[neuron, col_idx] = rate
 
-    np.save(os.path.join(folder, "neuron_rates.npy"), data_extr)
+                    if odor == "od1": # check that they really are named liked that in the dict
+                        data_extr_od1[neuron, col_idx] = rate
+                    elif odor == "od2":
+                        data_extr_od2[neuron, col_idx] = rate
+
+    path1 = os.path.join(folder, "rates_od1.npy")
+    path2 = os.path.join(folder, "rates_od2.npy")
+    np.save(path1, data_extr_od1)
+    np.save(path2, data_extr_od2)
+
+    return path1, path2
 
 def exploratory_plots(
         path, pop, pop_nums, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 
