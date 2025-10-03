@@ -3,26 +3,32 @@
 #include <cuda.h>
 #include <vector>
 #include <cmath>
+#include <string>
 
 __global__ void PDV_kernel(float* rates_a, float* rates_b, float* results_a, float* results_b, int num_neurons, int num_runs);
 
 int main()
 {
     cnpy::NpyArray array_a = cnpy::npy_load("rates_od1.npy"); // will need to pass the precise path from python
-    float* a = array.data_a<float>(); // cast into float32
+    float* a = array_a.data<float>(); // cast into float32
     cnpy::NpyArray array_b = cnpy::npy_load("rates_od2.npy");
-    float* b = array.data_b<float>();
+    float* b = array_b.data<float>();
 
-    int num_neurons = data_a.size(); // assuming both stimulus were presented to the same ntwrk configuration
-    int num_runs = data_a[0].size();
+    unsigned int num_neurons = &a.size(); // assuming both stimulus were presented to the same ntwrk configuration
+    unsigned int num_runs = &a[0].size();
 
-    // here vector for results
-    
+    // here vectors for results
+    std::vector<float> res_1(num_runs);
+    std::vector<float> res_2(num_runs);
 
-    dim3 numBlocks(1000);
+    dim3 numBlocks(num_runs);
     dim3 threadsPerBlock(256);
 
-    PDV_kernel<<<numBlocks, threadsPerBlock>>>(data*, results*, num_neurons, num_runs);
+
+
+
+
+
 
 }
 
