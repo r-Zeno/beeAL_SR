@@ -267,7 +267,7 @@ def fire_rate(data:dict, paras):
 
 def dict2np_converter(data:dict, folder):
     """
-    to be used everytime data is to be passed to c++/CUDA code for fast computing.
+    to be used everytime data is to be passed to C++/CUDA code for fast computing.
     For now it only serves the use of passing rates.
     Will need to specify grouping behavior, as it may be convenient to create a 2d array for each pop
     or to store all pop together.
@@ -291,7 +291,7 @@ def dict2np_converter(data:dict, folder):
             for odor in range(n_stimuli):
                 col_idx = run
 
-                for neuron in range(n_neurons):
+                for neuron in range(n_neurons): # may be better to join them as 800 x 2000
 
                     rate = data[state][run][odor][pop][neuron]
 
@@ -302,10 +302,14 @@ def dict2np_converter(data:dict, folder):
 
     path1 = os.path.join(folder, "rates_od1.npy")
     path2 = os.path.join(folder, "rates_od2.npy")
-    np.save(path1, data_extr_od1)
-    np.save(path2, data_extr_od2)
 
-    return path1, path2
+    # transposing to runs x neurons: this is better for the gpu, enabling it to make a single memory call to fetch data for every T in a warp
+    gpu_data_od1 = data_extr_od1.T
+    gpu_data_od2 = data_extr_od2.T
+    np.save(path1, gpu_data_od1)
+    np.save(path2, gpu_data_od2)
+
+    return path1, path2 # will need to be passed to the C++ code
 
 def exploratory_plots(
         path, pop, pop_nums, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 
