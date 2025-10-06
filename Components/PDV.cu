@@ -101,7 +101,7 @@ __global__ void PDV_main( // ! not safe for any block dim other than 256 ! when 
 
     if(tid == 0)
     {
-        results[blockIdx.x] = final_sum 
+        results[blockIdx.x] = sqrtf(final_sum);
     }
 
     // now to copy results to host
