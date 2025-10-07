@@ -1,6 +1,6 @@
 #include <iostream>
 #include "cnpy.h"
-#include <cuda.h>
+#include <cuda_runtime.h>
 #include <vector>
 #include <cmath>
 #include <string>
@@ -13,7 +13,6 @@ __global__ void PDV_main(
     size_t num_neurons,
     size_t N_WARPS
 );
-void toga(float* dev_ptr, float* host_ptr, size_t num_elements);
 
 int main()
 {
@@ -39,31 +38,28 @@ int main()
     float* g_a = nullptr; // pointers to allocate arrays to (in global mem)
     float* g_b = nullptr;
     float* g_res = nullptr;
-    
-    toga(g_a, a, a_num), toga(g_b, b, b_num), toga(g_res, res, res_num);
+    size_t g_a_size = a_num * sizeof(float);
+    size_t g_b_size = b_num * sizeof(float);
+    size_t res_size = res_num * sizeof(float);
 
-    constexpr size_t N_WARPS = numT/32;
+    cudaMalloc(&g_a, g_a_size), cudaMalloc(&g_b, g_b_size), cudaMalloc(&g_res, res_size);
+    cudaMemcpy(g_a, a, g_a_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(g_b, b, g_b_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(g_res, res, res_size, cudaMemcpyHostToDevice);
+
+    const size_t N_WARPS = numT/32;
     size_t sharedMem_size = N_WARPS * sizeof(float);
     PDV_main<numT><<numBlocks, threadsPerBlock, sharedMem_size>>(g_a, g_b, g_res, num_neurons, N_WARPS);
 
     cudaMemcpy(res, g_res, num_runs*sizeof(float), cudaMemcpyDeviceToHost);
+
+    std::vector<size_t> res_shape = {num_runs};
+    cnpy::npy_save("pdv_distances.npy", res, res_shape, "w");
+
     cudaFree(g_a), cudaFree(g_b), cudaFree(g_res);
-
-    // now write .npy
-
     delete[] res;
 
     return 0;
-}
-
-// toga just doesnt work, passing and modifying the pointer's pointer is a mess, remove it :(
-void toga(float** dev_ptr, float* host_ptr, size_t num_elements)
-{ // to add error logging here
-    size_t size = num_elements*sizeof(float);
-
-    cudaMalloc(dev_ptr, size);
-    cudaMemcpy(*dev_ptr, host_ptr, size, cudaMemcpyHostToDevice);
-
 };
 
 template <size_t numT>
