@@ -2,8 +2,8 @@
     "simulation_parameters": {
 
         "noiselvl_min": 0.0,
-        "noiselvl_max": 5.0,
-        "steps": 10,
+        "noiselvl_max": 4.0,
+        "steps": 5,
         "sdf": false,
         "dist": true,
         "selection_criterion" :{
@@ -24,6 +24,8 @@
         "pn": 5,
         "ln": 25
         },
+
+        "I_background": false,
     
         "param_or": {},
 
@@ -48,7 +50,8 @@
             "g_adapt": 0.0015,
             "V_adapt": -70.0,
             "tau_adapt": 1000.0,
-            "noise_A": 0.0
+            "noise_A": 0.0,
+            "I_background": 112.7
         },
 
         "initial_param_orn": {
@@ -66,7 +69,8 @@
             "g_adapt": 0.0,
             "V_adapt": -70.0,
             "tau_adapt": 1000.0,
-            "noise_A": 0.0
+            "noise_A": 0.0,
+            "I_background": 150.05
         },
 
         "initial_param_pn":  {
@@ -84,7 +88,8 @@
             "g_adapt": 0.0005,
             "V_adapt": -70.0,
             "tau_adapt": 1000.0,
-            "noise_A": 0.0
+            "noise_A": 0.0,
+            "I_background": 37.7
         },
 
         "initial_param_ln":  {
@@ -320,7 +325,7 @@
             "nticks": 15,
             "data": "relative_rate_delta_odorsdiff",
             "color_map": "viridis",
-            "title": "f\"relative firing rate difference between odors - {pop}",
+            "title": "f\"relative firing rate difference between odors - {pop}\"",
             "ylabel": "PN neuron",
             "xlabel": "noise A",
             "filename": "f\"relative_rate_delta_odorsdiff_{pop}.png\"",
@@ -361,7 +366,8 @@
             "which_pop": {
 
                 "pn": ["pn", 800],
-                "ln": ["ln", 4000]
+                "ln": ["ln", 4000],
+                "orn": ["orn", 9600]
 
             },
             "which_metric": ["vp"],

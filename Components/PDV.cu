@@ -1,72 +1,67 @@
 #include <iostream>
-#include "cnpy.h"
 #include <cuda_runtime.h>
 #include <vector>
 #include <cmath>
 #include <string>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 
-template <size_t numT>
+namespace py = pybind11;
+
 __global__ void PDV_main(
     const float* __restrict__ rates_a,
     const float* __restrict__ rates_b,
     float* __restrict__ results,
+    size_t numT,
     size_t num_neurons,
     size_t N_WARPS
 );
 
-int main()
+py::array_t<float> compute_PDVgpu(
+    py::array_t<float, py::array::c_style | py::array::forcecast> rates_a,
+    py::array_t<float, py::array::c_style | py::array::forcecast> rates_b
+)
 {
-    cnpy::NpyArray array_a = cnpy::npy_load("rates_od1.npy"); // will need to pass the precise path from python
-    float* a = array_a.data<float>(); // cast into float32 and create a pointer
-    size_t a_num = array_a.num_vals;
+    size_t num_neurons = rates_a.shape()[1]; // assuming both stimulus were presented to the same ntwrk configuration
+    size_t num_runs = rates_a.shape()[0];
 
-    cnpy::NpyArray array_b = cnpy::npy_load("rates_od2.npy");
-    float* b = array_b.data<float>();
-    size_t b_num = array_b.num_vals;
-
-    size_t num_neurons = array_b.shape[1]; // assuming both stimulus were presented to the same ntwrk configuration
-    size_t num_runs = array_a.shape[0];
-
-    size_t numT = 256; //hardcoded for now, should make it set by simulator later to benchmark
+    size_t numT = 256;
+    const size_t N_WARPS = numT/32;
     dim3 numBlocks(num_runs);
     dim3 threadsPerBlock(numT);
 
-    float* res;
-    res = new float[num_runs]{0.0};
-    size_t res_num = num_runs;
+    const float* h_a = rates_a.data();
+    const float* h_b = rates_b.data();
+    size_t input_size = num_runs * num_neurons * sizeof(float);
 
-    float* g_a = nullptr; // pointers to allocate arrays to (in global mem)
+    size_t output_size = num_runs * sizeof(float);
+
+    float* g_a = nullptr;
     float* g_b = nullptr;
     float* g_res = nullptr;
-    size_t g_a_size = a_num * sizeof(float);
-    size_t g_b_size = b_num * sizeof(float);
-    size_t res_size = res_num * sizeof(float);
 
-    cudaMalloc(&g_a, g_a_size), cudaMalloc(&g_b, g_b_size), cudaMalloc(&g_res, res_size);
-    cudaMemcpy(g_a, a, g_a_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(g_b, b, g_b_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(g_res, res, res_size, cudaMemcpyHostToDevice);
+    cudaMalloc(&g_a, input_size), cudaMalloc(&g_b, input_size), cudaMalloc(&g_res, output_size);
+    cudaMemcpy(g_a, h_a, input_size, cudaMemcpyHostToDevice);
+    cudaMemcpy(g_b, h_b, input_size, cudaMemcpyHostToDevice);
 
-    const size_t N_WARPS = numT/32;
     size_t sharedMem_size = N_WARPS * sizeof(float);
-    PDV_main<numT><<numBlocks, threadsPerBlock, sharedMem_size>>(g_a, g_b, g_res, num_neurons, N_WARPS);
+    PDV_main<<<numBlocks, threadsPerBlock, sharedMem_size>>>(g_a, g_b, g_res, numT, num_neurons, N_WARPS);
 
-    cudaMemcpy(res, g_res, num_runs*sizeof(float), cudaMemcpyDeviceToHost);
+    auto h_res = py::array_t<float>(num_runs);
+    float* h_res_ptr = h_res.mutable_data();
 
-    std::vector<size_t> res_shape = {num_runs};
-    cnpy::npy_save("pdv_distances.npy", res, res_shape, "w");
+    cudaMemcpy(h_res_ptr, g_res, output_size, cudaMemcpyDeviceToHost);
 
     cudaFree(g_a), cudaFree(g_b), cudaFree(g_res);
-    delete[] res;
 
-    return 0;
+    return h_res;
 };
 
-template <size_t numT>
 __global__ void PDV_main( // ! not safe for any block dim other than 256 ! when this will work well, will add dynamic branching with templates
     const float* __restrict__ rates_a,
     const float* __restrict__ rates_b,
     float* __restrict__ results,
+    size_t numT,
     size_t num_neurons,
     size_t N_WARPS
 )
@@ -89,8 +84,6 @@ __global__ void PDV_main( // ! not safe for any block dim other than 256 ! when 
         p_sum += (rates_a[i] - rates_b[i]) * (rates_a[i] - rates_b[i]);
     }
 
-    // now sum the partial sums from all threads at warp level (not necessary here, but
-    // generally good for performance to operate reduction within warps using registry before going to shared memory)
     constexpr unsigned int MASK = 0xffffffff;
     #pragma unroll
     for(size_t offset = 16; offset > 0; offset /= 2)
@@ -117,3 +110,9 @@ __global__ void PDV_main( // ! not safe for any block dim other than 256 ! when 
         results[blockIdx.x] = sqrtf(final_sum);
     }
 };
+
+PYBIND11_MODULE(pdv_cuda, m)
+{
+    m.doc() = "PDV computation between 2 arrays of rates (runs x neurons) on gpu";
+    m.def("compute_PDVgpu", &compute_PDVgpu, "computes PDV on gpu for 2 rates arrays");
+}

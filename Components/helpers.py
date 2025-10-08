@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pdv_cuda
 from matplotlib import pyplot as plt
 from numba import jit
 
@@ -265,7 +266,7 @@ def fire_rate(data:dict, paras):
 
     return rates
 
-def dict2np_converter(data:dict, folder):
+def toga(data:dict, folder):
     """
     to be used everytime data is to be passed to C++/CUDA code for fast computing.
     For now it only serves the use of passing rates.
@@ -277,28 +278,32 @@ def dict2np_converter(data:dict, folder):
 
     # hardcoding everything, just to start
     # should handle multiple pops, creating a matrix for each!
-    pop = "pns" # check the real name of the dict key
+    pop = "pn" # check the real name of the dict key
     states = ["baseline", "stimulation"]
     n_neurons = 800
-    n_runs = 1000
-    n_stimuli = 2
+    n_runs = 15
+
+    runs_naming = []
+    for runs in range(n_runs):
+        runs_naming.append(f"run_{runs}")
+
+    odors = ["odor_1", "odor_2"]
 
     data_extr_od1 = np.zeros((n_neurons, n_runs))
     data_extr_od2 = np.zeros((n_neurons, n_runs))
 
-    for state in states:
-        for run in range(n_runs):
-            for odor in range(n_stimuli):
-                col_idx = run
+    for col_idx, run in enumerate(runs_naming):
+        for odor in odors:
 
-                for neuron in range(n_neurons): # may be better to join them as 800 x 2000
+            for neuron in range(n_neurons): # may be better to join them as 800 x 2000
 
-                    rate = data[state][run][odor][pop][neuron]
+                rate_b = data["baseline"][run][odor][pop][neuron]
+                rate_s = data["stimulation"][run][odor][pop][neuron]
 
-                    if odor == "od1": # check that they really are named liked that in the dict
-                        data_extr_od1[neuron, col_idx] = rate
-                    elif odor == "od2":
-                        data_extr_od2[neuron, col_idx] = rate
+                if odor == "odor_1":
+                    data_extr_od1[neuron, col_idx] = abs(rate_s - rate_b)
+                elif odor == "odor_2":
+                    data_extr_od2[neuron, col_idx] = abs(rate_s - rate_b)
 
     path1 = os.path.join(folder, "rates_od1.npy")
     path2 = os.path.join(folder, "rates_od2.npy")
@@ -309,7 +314,11 @@ def dict2np_converter(data:dict, folder):
     np.save(path1, gpu_data_od1)
     np.save(path2, gpu_data_od2)
 
-    return path1, path2 # will need to be passed to the C++ code
+    pdv = pdv_cuda.compute_PDVgpu(gpu_data_od1, gpu_data_od2)
+
+    np.save(os.path.join(folder, "pdv.npy"), pdv)
+
+    return pdv
 
 def exploratory_plots(
         path, pop, pop_nums, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 

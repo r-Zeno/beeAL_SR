@@ -8,7 +8,7 @@ from SDFplotter import SDFplotter
 from DistanceAnalyzer import DistanceAnalyzer
 from NeuronSelector import NeuronSelector
 from RateAnalyzer import RateAnalyzer
-from helpers import exploratory_plots, neuron_spikes_assemble, fire_rate
+from helpers import exploratory_plots, neuron_spikes_assemble, fire_rate, toga
 
 class Simulator:
 
@@ -102,7 +102,7 @@ class Simulator:
                     means_vpdist[runname][pop] = dist_result
         end = time.time()
         timetaken_an = round(end - start,2)
-        print(f"Analysis ended,\n Time spent in sim: {timetaken_sim}s | {round(timetaken_sim/60,2)} min, time spent computing distances: {timetaken_an}s")
+        print(f"VP dist Analysis ended,\n Time spent in sim: {timetaken_sim}s | {round(timetaken_sim/60,2)} min, time spent computing distances: {timetaken_an}s | {round(timetaken_an/60,2)} min")
 
         if self.sim_paras["dist"]:
             plot_names = {}
@@ -134,6 +134,8 @@ class Simulator:
 
                 np.save(os.path.join(self.folder, f"mean_vp_dist_x_noiselvls_{pop}.npy"), curr_vpmean_runxpop)
                 np.save(os.path.join(self.folder, f"single_vp_dist_values_{pop}.npy"), curr_vpsingle_runxpop)
+            
+            pdv = toga(rates, self.folder)
 
         with open(os.path.join(self.folder, "plot_names.json"), "w") as fp:
             json.dump(plot_names, fp, indent=4)

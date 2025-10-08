@@ -10,3 +10,6 @@ sim*/**
 parameters.json
 remote_run_sim.sh
 **/report*
+*.so
+pybind11/
+simulations/
