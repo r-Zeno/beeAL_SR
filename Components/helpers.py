@@ -266,7 +266,7 @@ def fire_rate(data:dict, paras):
 
     return rates
 
-def toga(data:dict, folder):
+def toga(data:dict, folder, n_runs):
     """
     to be used everytime data is to be passed to C++/CUDA code for fast computing.
     For now it only serves the use of passing rates.
@@ -281,7 +281,6 @@ def toga(data:dict, folder):
     pop = "pn" # check the real name of the dict key
     states = ["baseline", "stimulation"]
     n_neurons = 800
-    n_runs = 15
 
     runs_naming = []
     for runs in range(n_runs):
@@ -294,16 +293,15 @@ def toga(data:dict, folder):
 
     for col_idx, run in enumerate(runs_naming):
         for odor in odors:
-
             for neuron in range(n_neurons): # may be better to join them as 800 x 2000
 
                 rate_b = data["baseline"][run][odor][pop][neuron]
                 rate_s = data["stimulation"][run][odor][pop][neuron]
 
                 if odor == "odor_1":
-                    data_extr_od1[neuron, col_idx] = abs(rate_s - rate_b)
+                    data_extr_od1[neuron, col_idx] = rate_s
                 elif odor == "odor_2":
-                    data_extr_od2[neuron, col_idx] = abs(rate_s - rate_b)
+                    data_extr_od2[neuron, col_idx] = rate_s
 
     path1 = os.path.join(folder, "rates_od1.npy")
     path2 = os.path.join(folder, "rates_od2.npy")
@@ -314,11 +312,11 @@ def toga(data:dict, folder):
     np.save(path1, gpu_data_od1)
     np.save(path2, gpu_data_od2)
 
-    pdv = pdv_cuda.compute_PDVgpu(gpu_data_od1, gpu_data_od2)
+    pdv = pdv_cuda.compute_D_gpu(gpu_data_od1, gpu_data_od2, 1)
 
     np.save(os.path.join(folder, "pdv.npy"), pdv)
 
-    return pdv
+    return None
 
 def exploratory_plots(
         path, pop, pop_nums, meanvp, singlevp, selected_neurons, flat_rate_base_od1, flat_rate_base_od2, 

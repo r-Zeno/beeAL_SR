@@ -135,7 +135,7 @@ class Simulator:
                 np.save(os.path.join(self.folder, f"mean_vp_dist_x_noiselvls_{pop}.npy"), curr_vpmean_runxpop)
                 np.save(os.path.join(self.folder, f"single_vp_dist_values_{pop}.npy"), curr_vpsingle_runxpop)
             
-            pdv = toga(rates, self.folder)
+            toga(rates, self.folder, self.sim_paras["steps"])
 
         with open(os.path.join(self.folder, "plot_names.json"), "w") as fp:
             json.dump(plot_names, fp, indent=4)
