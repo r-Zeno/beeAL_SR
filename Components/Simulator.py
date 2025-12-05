@@ -3,7 +3,7 @@ import json
 import time
 import numpy as np
 from ModelBuilder import ModelBuilder
-from Experimenter import Experimenter
+from ExperimentStatic import *
 from SDFplotter import SDFplotter
 from DistanceAnalyzer import DistanceAnalyzer
 from NeuronSelector import NeuronSelector
@@ -59,7 +59,7 @@ class Simulator:
         data_paths = []
         run = 0
         for lvl in self.noise_lvls:
-            experiment = Experimenter(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps, self.debugmode)
+            experiment = ExperimentStatic(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps, self.debugmode)
             data_path = experiment.run(self.exp_1, self.exp_2)
             data_paths.append(data_path)
             run += 1
