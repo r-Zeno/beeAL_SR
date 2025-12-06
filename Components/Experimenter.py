@@ -9,7 +9,17 @@ class Experimenter:
     def __init__(self, model, exp_paras, folder, noise_lvls, spk_rec_steps, debugmode:bool):
 
         self.data_paths = []
+        self.which_exp = exp_paras["exp"]
+        
 
+    def run():
 
-    for run in noise_lvls:
+        match self.which_exp:
+            case "static_single":
+                exp = ExperimentStatic()
+                exp.run()
+            case "dynamic_single":
+                exp = 0
+            case _: raise ValueError("invalid experiment selected, check json")
+                
 
