@@ -27,6 +27,7 @@ class ModelBuilder:
         self.lif_wback = self.paras["I_background"]
         self.dt = dt
 
+        # check if float32 is good here
         self.model = GeNNModel("double", "beeAL", backend="CUDA") # for linux add backend="CUDA"
         self.model.dt = dt
 
