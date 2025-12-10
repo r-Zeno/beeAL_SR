@@ -20,12 +20,12 @@ class Experimenter:
         # assuming all possible exp define runs and trial numbers
         self.runs = self.paras["runs"]
         self.trials = self.paras["trials"]
-        
 
-        
+        self.path = os.path.join(folder, exp_type)
 
     def run(self):
 
+        foo = True
         match self.which_exp:
 
             case "static_single":
@@ -36,14 +36,24 @@ class Experimenter:
                 exp = 0
                 for i in range(self.runs):
 
+                    dirname = os.path.join(self.folder,f"lvl_{i}")
+
                     for j in range(self.trials):
 
                         exp = ExperimentDynamicSingle(self.paras, self.model)
                         stim, spk_id, spk_t = exp.run(i,j)
 
                         
+                        np.save(os.path.join(dirname,f"spk_id_lvl{i}_it{j}"), spk_id)
+                        np.save(os.path.join(dirname,f"spk_t_lvl{i}_it{j}"), spk_t)
+                        if foo:
+                            # need to save only once, ugly this way
+                            np.save(os.path.join(dirname,"stim"), stim)
+                            foo = False
 
+                        del stim, spk_id, spk_t
+                        
 
-                
             case _: raise ValueError("invalid experiment selected, check json")
 
+        return data_path
