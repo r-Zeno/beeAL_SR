@@ -14,11 +14,16 @@ class ExperimentDynamicSingle:
         steps = paras["noise"]["noiselvl_steps"]
         # normalized by integration timestep
         self.noise_lvls = np.divide(np.linspace(noise_min, noise_max, steps), np.sqrt(model.dt))
+        self.model = model
 
-        self.duration = paras["exp_duration_sec"]
-        self.tau = paras["autocorellation_time"]
+        self.duration = paras["exp_duration_s"]
+        self.tau = paras["autocorellation_time_s"]
         self.mean_value = paras["expected_value"]
         self.stim_sd = paras["standard_dev"]
+        self.seed = paras["rndm_seed"]
+        if self.seed == 0:
+            self.seed = None
+        self.dt = model.dt
 
     def _stim_gen(self, time, dt, tau_s, mean, sigma, seed=None):
         """
@@ -40,6 +45,9 @@ class ExperimentDynamicSingle:
             diffusion = noise_scaling * noise[i-1]
             stim[i] = stim[i-1] + drift + diffusion
 
+        #if self.debug:
+        #    plot
+
         return stim
 
     def run(self, run, iteration):
@@ -47,10 +55,14 @@ class ExperimentDynamicSingle:
         sim_time = self.duration
 
         if self.stim_generated is None:
-            stim = self._stim_gen(sim_time)
+            stim = self._stim_gen(sim_time, self.dt, self.tau, self.mean_value, self.stim_sd, self.seed)
         else: stim = self.stim_generated
 
         # will have to generate an array via currentsource on the gpu, since the value is updated every timestep (?)
+        # should stimulus be inputted to ors or orns directly?
+
+        while self.model.t < sim_time:
+            # need to give short time to stabilize to LIF?
 
 
 
