@@ -12,9 +12,11 @@ class ExperimentDynamicSingle:
         noise_max = paras["noise"]["noiselvl_min"]
         noise_min = paras["noise"]["noiselvl_max"]
         steps = paras["noise"]["noiselvl_steps"]
+        self.noisy_pop = paras["noise"]["noisy_pop"]
         # normalized by integration timestep
         self.noise_lvls = np.divide(np.linspace(noise_min, noise_max, steps), np.sqrt(model.dt))
         self.model = model
+        self.spk_rec_steps = paras["spk_rec_steps_ms"]
 
         self.duration = paras["exp_duration_s"]
         self.tau = paras["autocorellation_time_s"]
@@ -49,6 +51,17 @@ class ExperimentDynamicSingle:
         #    plot
 
         return stim
+    
+    def _noise_lvl_injecter(self, run):
+
+        noise_lvl = self.noise_lvls[run]
+
+        for pop in self.noisy_pop:
+            popobj = self.model.neuron_populations.get(pop)
+
+            if popobj is not None:
+                print(f"applying noise lvl {noise_lvl} in pop {pop}...")
+                popobj.set_dynamic_param_value("noise_A", noise_lvl)
 
     def run(self, run, iteration):
 
@@ -58,14 +71,33 @@ class ExperimentDynamicSingle:
             stim = self._stim_gen(sim_time, self.dt, self.tau, self.mean_value, self.stim_sd, self.seed)
         else: stim = self.stim_generated
 
+        self.model.load(num_recording_timesteps = int(self.spk_rec_steps))
+        self._noise_lvl_injecter(run)
+
         # will have to generate an array via currentsource on the gpu, since the value is updated every timestep (?)
         # should stimulus be inputted to ors or orns directly?
 
         while self.model.t < sim_time:
-            # need to give short time to stabilize to LIF?
+            # need to give short time to stabilize LIF?
 
+            # here apply current source only to orns of 1 glom
 
+            self.model.step_time()
 
+            # spike train pulling loop
+            if self.model.t%self.spk_rec_steps:
+
+                for pop in self.pop2record:
+                    pop2pull = self.model.neuron_populations[pop]
+
+                    if pop2pull.spike_recording_data[0][0] > 0:
+                        spike_t[pop].append(pop2pull.spike_recording_data[0][0])
+                        spike_id[pop].append(pop2pull.spike_recording_data[0][1])
+                        if self.debug: print(f"spikes fetched for time {self.model.t} in {pop}")
+                    else: 
+                        if self.debug: print(f"no spikes at time {self.model.t} in {pop}")
+
+        self.model.unload()
 
         return stim, spk_id, spk_t
         
