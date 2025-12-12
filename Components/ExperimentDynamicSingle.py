@@ -1,13 +1,14 @@
 import numpy as np
 import os
 from pygenn.genn_model import GeNNModel
-from pygenn import CurrentSource
+from pygenn import genn_model
 
 
 class ExperimentDynamicSingle:
 
-    def __init__(self, paras, model:GeNNModel, stim_generated):
+    def __init__(self, paras, model:GeNNModel, stim_generated, debug:bool):
 
+        self.debug = debug
         self.stim_generated = stim_generated
         noise_max = paras["noise"]["noiselvl_min"]
         noise_min = paras["noise"]["noiselvl_max"]
@@ -16,7 +17,9 @@ class ExperimentDynamicSingle:
         # normalized by integration timestep
         self.noise_lvls = np.divide(np.linspace(noise_min, noise_max, steps), np.sqrt(model.dt))
         self.model = model
+
         self.spk_rec_steps = paras["spk_rec_steps_ms"]
+        self.pop2record = paras["pop_to_record"]
 
         self.duration = paras["exp_duration_s"]
         self.tau = paras["autocorellation_time_s"]
@@ -26,6 +29,13 @@ class ExperimentDynamicSingle:
         if self.seed == 0:
             self.seed = None
         self.dt = model.dt
+
+        self.spike_t = {}
+        self.spike_id = {}
+        for pop in self.pop2record:
+            self.spike_t[pop] = np.array()
+            self.spike_id[pop] = np.array()
+
 
     def _stim_gen(self, time, dt, tau_s, mean, sigma, seed=None):
         """
@@ -63,24 +73,26 @@ class ExperimentDynamicSingle:
                 print(f"applying noise lvl {noise_lvl} in pop {pop}...")
                 popobj.set_dynamic_param_value("noise_A", noise_lvl)
 
-    def run(self, run, iteration):
+    def run(self, run):
 
-        sim_time = self.duration
+        sim_time = self.duration * 1000 # in ms
 
         if self.stim_generated is None:
             stim = self._stim_gen(sim_time, self.dt, self.tau, self.mean_value, self.stim_sd, self.seed)
         else: stim = self.stim_generated
 
         self.model.load(num_recording_timesteps = int(self.spk_rec_steps))
+
         self._noise_lvl_injecter(run)
+        
+        # if this returns error, then the custom current source model cannot be added to the model object
+        # and will need to be passed by Simulator from ModelBuilder :(
+        var2input = self.model.input_source.extra_global_params["input_stream"]
+        var2input.view[:] = stim
+        var2input.push_to_device()
 
-        # will have to generate an array via currentsource on the gpu, since the value is updated every timestep (?)
-        # should stimulus be inputted to ors or orns directly?
-
-        while self.model.t < sim_time:
-            # need to give short time to stabilize LIF?
-
-            # here apply current source only to orns of 1 glom
+        while self.model.t <= sim_time:
+            # need to give short time to stabilize LIF?            
 
             self.model.step_time()
 
@@ -91,13 +103,12 @@ class ExperimentDynamicSingle:
                     pop2pull = self.model.neuron_populations[pop]
 
                     if pop2pull.spike_recording_data[0][0] > 0:
-                        spike_t[pop].append(pop2pull.spike_recording_data[0][0])
-                        spike_id[pop].append(pop2pull.spike_recording_data[0][1])
+                        self.spike_t[pop].append(pop2pull.spike_recording_data[0][0])
+                        self.spike_id[pop].append(pop2pull.spike_recording_data[0][1])
                         if self.debug: print(f"spikes fetched for time {self.model.t} in {pop}")
                     else: 
                         if self.debug: print(f"no spikes at time {self.model.t} in {pop}")
 
         self.model.unload()
 
-        return stim, spk_id, spk_t
-        
+        return stim, self.spike_id, self.spike_t

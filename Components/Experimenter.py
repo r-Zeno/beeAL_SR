@@ -25,16 +25,22 @@ class Experimenter:
 
     def run(self):
 
+        spk_id_paths = []
+        spk_t_paths = []
+
         match self.exp_type:
 
             case "static_single":
+                # work in progress
                 exp = ExperimentStatic()
                 exp.run()
 
-            case "dynamic_single":
-                
+            case "DynamicSingle":
+
+                stim_path = []
+                pop2record = self.paras["pop_to_record"]
                 stim_gen = None
-                exp = 0
+
                 for i in range(self.runs):
 
                     dirname = os.path.join(self.folder,f"lvl_{i}")
@@ -42,18 +48,26 @@ class Experimenter:
                     for j in range(self.trials):
 
                         exp = ExperimentDynamicSingle(self.paras, self.model, stim_gen)
-                        stim, spk_id, spk_t = exp.run(i,j)
-
+                        stim, spk_id, spk_t = exp.run(i)
                         
-                        np.save(os.path.join(dirname,f"spk_id_lvl{i}_it{j}"), spk_id)
-                        np.save(os.path.join(dirname,f"spk_t_lvl{i}_it{j}"), spk_t)
+                        for pop in pop2record:
+
+                            spk_id_path = os.path.join(dirname, f"spk_id_lvl{i}_it{j}_{pop}")
+                            spk_t_path = os.path.join(dirname, f"spk_t_lvl{i}_it{j}_{pop}")
+                            np.save(spk_id_path, spk_id[pop])
+                            np.save(spk_t_path, spk_t[pop])
+                            spk_id_paths.append(spk_id_path)
+                            spk_t_paths.append(spk_id_path)
+
                         if stim_gen is None:
                             # need to generate and save only once, ugly this way
-                            np.save(os.path.join(dirname,"stim"), stim)
+                            stim_path = os.path.join(dirname, "stim")
+                            np.save(stim_path, stim)
+
                             stim_gen = stim
 
                         del stim, spk_id, spk_t
                         
             case _: raise ValueError("invalid experiment selected, check json")
 
-        return data_path
+        return stim_path, spk_id_paths, spk_t_paths

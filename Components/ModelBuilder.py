@@ -1,7 +1,7 @@
 import os
 import pygenn
 from pygenn import create_var_ref, init_postsynaptic, init_sparse_connectivity
-from pygenn.genn_model import GeNNModel, create_weight_update_model, create_postsynaptic_model, create_sparse_connect_init_snippet, create_var_init_snippet, init_weight_update
+from pygenn.genn_model import GeNNModel, create_weight_update_model, create_postsynaptic_model, create_sparse_connect_init_snippet, create_var_init_snippet, init_weight_update, create_current_source_model
 import time
 try:
     import pygenn.cuda_backend
@@ -16,12 +16,15 @@ class ModelBuilder:
     - paras: parameters dictionary (json file).
     - dt: default to 0.1 ms.
     """
-    def __init__(self, paras:dict, dt=0.1):
+    def __init__(self, paras:dict, exp_type, target_pop, dt=0.1):
 
         try:
             os.environ['CUDA_PATH'] = '/usr/local/cuda'
             pygenn.genn_model.backend_modules["CUDA"] = pygenn.cuda_backend # must manually set, otherwise on linux wont work
         except: print("Warning: could not set CUDA backends")
+
+        self.exp_type = exp_type # because different experiments need different model components
+        self.target_pop = target_pop
 
         self.paras = paras
         self.lif_wback = self.paras["I_background"]
@@ -482,6 +485,28 @@ class ModelBuilder:
             )
 
         return adapt_lifi
+    
+    def _time_varying_input_model(self, target_pop):
+
+        input_model = create_current_source_model(
+            "varying_input",
+            extra_global_params = [("input_stream", "scalar")],
+            injection_code = 
+            """
+            if(id >= 4739 && id <= 4799) // targetting the middle glom
+            {
+            int t_idx = int(t / dt) // if t is not provided by genn as a default, need to create a "t" counter
+            injectCurrent(input_stream[t_idx])
+            }
+            """
+        )
+
+        custom_cs = self.model.add_current_source("VaryingInput", input_model, target_pop, {}, {})
+
+        # this is needed because the custom cs model is to be modified later (giving the actual input stream)
+        # and it is nicer to attach it to the model object, without passing it through Simulator
+        self.model.input_model = custom_cs
+
 
     def _builder(self):
         print("all good, building model...")
@@ -560,5 +585,9 @@ class ModelBuilder:
                 print(f"added connection {ctype}")
         else: print("Warning: building a model without connections!")
 
+        if self.exp_type == "DynamicSingle":
+            self._time_varying_input_model(self.target_pop)
+
         self._builder()
+        
         return self.model

@@ -3,6 +3,7 @@ import json
 import time
 import numpy as np
 from ModelBuilder import ModelBuilder
+from Experimenter import Experimenter
 from ExperimentStatic import *
 from SDFplotter import SDFplotter
 from DistanceAnalyzer import DistanceAnalyzer
@@ -14,11 +15,10 @@ class Simulator:
 
     def __init__(self, parameters_path:str):
 
-        self.paras_path = parameters_path
         self.sim_settings = {}
 
-        with open(self.paras_path) as f:
-            self.parameters = json.load(f)
+        with open(parameters_path) as f:
+            parameters = json.load(f)
         
         current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         simdirname = "simulations"
@@ -28,12 +28,15 @@ class Simulator:
         self.folder = os.path.join(current_dir, dirname)
         os.makedirs(self.folder)
 
-        self.mod_paras = self.parameters["model_parameters"]
-        self.exp_paras = self.parameters["experiment_parameters"]
-        self.sdf_paras = self.parameters["analysis_parameters"]["sdf_parameters"]
-        self.dist_paras = self.parameters["analysis_parameters"]["distance_parameters"]
-        self.sim_paras = self.parameters["simulation_parameters"]
-        self.plot_paras = self.parameters["exp_plot_parameters"]
+        self.exp_type = parameters["which_exp"]
+        if self.exp_type == "DynamicSingle":
+            self.target_pop = parameters["epxeriments"]["DynamicSingle"]["target_pop_for_stimulus"]
+        self.mod_paras = parameters["model_parameters"]
+        self.exp_paras = parameters["experiment_parameters"]
+        self.sdf_paras = parameters["analysis_parameters"]["sdf_parameters"]
+        self.dist_paras = parameters["analysis_parameters"]["distance_parameters"]
+        self.sim_paras = parameters["simulation_parameters"]
+        self.plot_paras = parameters["exp_plot_parameters"]
         self.spk_rec_steps = self.mod_paras["spk_rec_steps"] # ugly way to pass model recording steps to the Experimenter
         self.exp_1 = self.exp_paras["experiment_concurrent"]
         self.exp_2 = self.exp_paras["experiment_separate"]
@@ -53,9 +56,10 @@ class Simulator:
         self.sim_settings["model_settings"] = self.mod_paras
         self.sim_settings["simulation_analysis_parameters"] = self.sdf_paras
         
-        build_plan = ModelBuilder(self.mod_paras)
+        build_plan = ModelBuilder(self.mod_paras, self.exp_type)
         model = build_plan.build()
 
+        # to be replaced by Experimenter for all possible experiments (so make ExperimentStatic compatible with Experimenter)
         data_paths = []
         run = 0
         for lvl in self.noise_lvls:
@@ -63,6 +67,9 @@ class Simulator:
             data_path = experiment.run(self.exp_1, self.exp_2)
             data_paths.append(data_path)
             run += 1
+
+        experiment = Experimenter()
+        stim_path, spk_t_paths, spk_id_paths = experiment.run()
 
         end = time.time()
         timetaken_sim = round(end - start,2)
