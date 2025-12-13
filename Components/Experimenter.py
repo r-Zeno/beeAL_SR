@@ -18,8 +18,8 @@ class Experimenter:
         self.exp_type = exp_paras["which_exp"]
         self.paras = exp_paras[self.exp_type]
         # assuming all possible exp define runs and trial numbers
-        self.runs = self.paras["runs"]
-        self.trials = self.paras["trials"]
+        self.runs = self.paras["num_runs"]
+        self.trials = self.paras["num_trials"]
 
         self.path = os.path.join(folder, self.exp_type)
 
@@ -44,6 +44,7 @@ class Experimenter:
                 for i in range(self.runs):
 
                     dirname = os.path.join(self.folder,f"lvl_{i}")
+                    os.makedirs(dirname, exist_ok=False)
 
                     for j in range(self.trials):
 
@@ -52,8 +53,8 @@ class Experimenter:
                         
                         for pop in pop2record:
 
-                            spk_id_path = os.path.join(dirname, f"spk_id_lvl{i}_it{j}_{pop}")
-                            spk_t_path = os.path.join(dirname, f"spk_t_lvl{i}_it{j}_{pop}")
+                            spk_id_path = os.path.join(dirname, f"spk_id_lvl{i}_it{j}_{pop}.npy")
+                            spk_t_path = os.path.join(dirname, f"spk_t_lvl{i}_it{j}_{pop}.npy")
                             np.save(spk_id_path, spk_id[pop])
                             np.save(spk_t_path, spk_t[pop])
                             spk_id_paths.append(spk_id_path)
@@ -61,7 +62,7 @@ class Experimenter:
 
                         if stim_gen is None:
                             # need to generate and save only once, ugly this way
-                            stim_path = os.path.join(dirname, "stim")
+                            stim_path = os.path.join(dirname, "stim.npy")
                             np.save(stim_path, stim)
 
                             stim_gen = stim

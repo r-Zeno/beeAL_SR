@@ -75,6 +75,9 @@ class Simulator:
         timetaken_sim = round(end - start,2)
         print(f"Simulations ended, it took {timetaken_sim}")
 
+        # analysis = Analyzer()
+        # res_path = analysis.run() 
+
         spk_split = neuron_spikes_assemble(data_paths, self.dist_paras, pad=False)
 
         rates = fire_rate(spk_split, self.dist_paras)
