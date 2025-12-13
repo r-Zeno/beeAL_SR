@@ -5,14 +5,14 @@ from mi_analysis_dynamic_single import *
 
 class Analyzer:
 
-    def __init__(self, paras, stim_path, data_paths):
+    def __init__(self, folder, paras, stim_path, data_paths):
 
         self.exp_type = paras["which_exp"]
         self.stim_path = stim_path
         self.runs = paras["num_runs"]
         self.trials = paras["num_trials"]
         self.data = data_log_compile(data_paths)
-
+        self.folder = folder
         analysis_paras = paras["analysis_parameters"]
 
     def run(self):
@@ -45,4 +45,5 @@ class Analyzer:
                             mi = mi_analysis_dynamic_single(stim, spk_id, spk_t)
                             mi_vals.append(mi)
 
-                np.save(mi_vals, )
+                mi_path = os.path.join(self.folder, "mi_values.npy")
+                np.save(mi_vals, mi_path)

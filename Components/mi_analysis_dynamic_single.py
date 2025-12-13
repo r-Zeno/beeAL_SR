@@ -20,7 +20,9 @@ def mi_analysis_dynamic_single(stim, spk_t, spk_id, paras):
     spks = spk_t[spk_id == neuron2analyze]
     spk_array = np.zeros(n_elements)
     idxs = (spks/dt).round().astype(np.int64)
-    spk_array[idxs] = 1
+    if len(idxs) > 0:
+        spk_array[idxs] = 1
+    else: print("Warning: it seems output neuron never fired")
 
     sigma_bins = sigma/dt
 
@@ -29,6 +31,6 @@ def mi_analysis_dynamic_single(stim, spk_t, spk_id, paras):
     rate_ds = smooth_rate[::step_ds]
     stim_ds = stim_raw[::step_ds]
 
-    mi = mutual_info_regression(stim_ds.reshape(-1,1), rate_ds, n_neighbors = k)
+    mi = mutual_info_regression(stim_ds.reshape(-1,1), rate_ds, n_neighbors = k)[0]
 
     return mi
