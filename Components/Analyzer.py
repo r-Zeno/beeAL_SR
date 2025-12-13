@@ -27,4 +27,7 @@ class Analyzer:
 
                 mi_val_path = []
 
-                for 
+                for i in range(self.runs):
+
+                    for j in range(self.trials):
+                        
