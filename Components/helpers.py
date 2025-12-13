@@ -376,3 +376,25 @@ def exploratory_plots(
         plotnames.append(p_fname)
 
     return plotnames
+
+def data_log_compile(data_log):
+
+    data_log_org = {}
+
+    for elmnt in data_log:
+
+        lvl = elmnt["level"]
+        trial = elmnt["trial"]
+        pop = elmnt["pop"]
+
+        if lvl not in data_log_org:
+            data_log_org[lvl] = {}
+        if trial not in data_log_org:
+            data_log_org[trial] = {}
+
+        data_log_org[lvl][trial][pop] = {
+            "spk_id_path": elmnt["spk_id_path"],
+            "spk_t_path": elmnt["spk_t_path"]
+        }
+
+    return data_log_org

@@ -32,14 +32,15 @@ class Experimenter:
 
             case "static_single":
                 # work in progress
-                exp = ExperimentStatic()
-                exp.run()
+                # to move everything here
+                raise ValueError("not ready yet")
 
             case "DynamicSingle":
 
                 stim_path = []
                 pop2record = self.paras["pop_to_record"]
                 stim_gen = None
+                data_log = []
 
                 for i in range(self.runs):
 
@@ -57,8 +58,14 @@ class Experimenter:
                             spk_t_path = os.path.join(dirname, f"spk_t_lvl{i}_it{j}_{pop}.npy")
                             np.save(spk_id_path, spk_id[pop])
                             np.save(spk_t_path, spk_t[pop])
-                            spk_id_paths.append(spk_id_path)
-                            spk_t_paths.append(spk_id_path)
+
+                            data_log.append({
+                                "level": i,
+                                "trial": j,
+                                "pop": pop,
+                                "spk_id_path": spk_id_path,
+                                "spk_t_path": spk_t_path
+                            })
 
                         if stim_gen is None:
                             # need to generate and save only once, ugly this way
@@ -67,7 +74,7 @@ class Experimenter:
 
                             stim_gen = stim
 
-                        del stim, spk_id, spk_t
+                        del stim, data_log
                         
             case _: raise ValueError("invalid experiment selected, check json")
 

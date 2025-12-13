@@ -69,13 +69,13 @@ class Simulator:
             run += 1
 
         experiment = Experimenter()
-        stim_path, spk_t_paths, spk_id_paths = experiment.run()
+        stim_path, data_log = experiment.run()
 
         end = time.time()
         timetaken_sim = round(end - start,2)
         print(f"Simulations ended, it took {timetaken_sim}")
 
-        # analysis = Analyzer()
+        # analysis = Analyzer(stim_path, data_log)
         # res_path = analysis.run() 
 
         spk_split = neuron_spikes_assemble(data_paths, self.dist_paras, pad=False)

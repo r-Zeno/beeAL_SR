@@ -1,16 +1,17 @@
 import os
 import numpy as np
+from helpers import data_log_compile
+from mi_analysis_dynamic_single import *
 
 class Analyzer:
 
-    def __init__(self, paras, stim_path, spk_t_paths, spk_id_paths):
+    def __init__(self, paras, stim_path, data_paths):
 
         self.exp_type = paras["which_exp"]
         self.stim_path = stim_path
-        self.spk_t_paths = spk_t_paths
-        self.spk_id_paths = spk_id_paths
         self.runs = paras["num_runs"]
         self.trials = paras["num_trials"]
+        self.data = data_log_compile(data_paths)
 
         analysis_paras = paras["analysis_parameters"]
 
@@ -25,9 +26,23 @@ class Analyzer:
             
             case "DynamicSingle":
 
-                mi_val_path = []
+                mi_vals = []
+                stim = np.load(self.stim_path)
 
-                for i in range(self.runs):
+                sorted_lvls = sorted(self.data.keys())
+                for lvl in sorted_lvls:
 
-                    for j in range(self.trials):
-                        
+                    sorted_trials = sorted(self.data[lvl].keys())
+                    for it in sorted_trials:
+
+                        for pop in self.pop2analyze:
+
+                            pop_data = self.data[lvl][it][pop]
+
+                            spk_id = np.load(pop_data["spk_id_path"])
+                            spk_t = np.load(pop_data["spk_t_path"])
+
+                            mi = mi_analysis_dynamic_single(stim, spk_id, spk_t)
+                            mi_vals.append(mi)
+
+                np.save(mi_vals, )

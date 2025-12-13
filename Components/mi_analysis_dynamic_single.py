@@ -1,35 +1,34 @@
 import numpy as np
-import os
 from sklearn.feature_selection import mutual_info_regression
+from scipy.ndimage import gaussian_filter1d
 
-class MiDynamicSingle:
+def mi_analysis_dynamic_single(stim, spk_t, spk_id, paras):
 
-    def __init__(self, stim_path, spk_t_path, spk_id_path, paras):
-        ZeroDivisionError()
-        
-        self.k = int(paras["k_neighbors"])
-        self.stim_path = stim_path
-        self.spk_t_path = spk_t_path
-        self.spk_id_path = spk_id_path
+    k = int(paras["k_neighbors"])
+    stim_raw = stim
+    spk_t = spk_t
+    spk_id = spk_id
 
-        self.pop2analyze = paras["population_to_analyze"]
-        self.neuron2analyze = int(paras["pn_neuron_idx_1based"]) - 1
+    sigma = paras["sigma_filter_ms"]
+    neuron2analyze = int(paras["pn_neuron_idx_1based"]) - 1
+    sim_time = paras["sim_time_secs"]
+    dt = paras["timestep_ms"]
+    dt_secs = dt / 1000
+    n_elements = int(sim_time*1000/dt)
+    step_ds = int(paras["downsample_step_ms"]/dt)
 
+    spks = spk_t[spk_id == neuron2analyze]
+    spk_array = np.zeros(n_elements)
+    idxs = (spks/dt).round().astype(np.int64)
+    spk_array[idxs] = 1
 
-    def _neuron_extract_spikes(self):
-        
-        mask = 
+    sigma_bins = sigma/dt
 
-    def _neuron_smooth_rate():
-        ZeroDivisionError()
-    
-    def Analysis(self):
+    smooth_rate = gaussian_filter1d(spk_array, sigma= sigma_bins, mode="constant") / dt_secs
 
-        n_spks = self._neuron_extract_spikes()
-        
-        n_rate = self._neuron_smooth_rate(n_spks)
-        stim = self.stim_path
+    rate_ds = smooth_rate[::step_ds]
+    stim_ds = stim_raw[::step_ds]
 
-        mi = mutual_info_regression(n_rate, stim, n_neighbors = self.k, n_jobs = -1)
+    mi = mutual_info_regression(stim_ds.reshape(-1,1), rate_ds, n_neighbors = k)
 
-        return mi
+    return mi
