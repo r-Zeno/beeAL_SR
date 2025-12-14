@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from helpers import data_log_compile
-from mi_analysis_dynamic_single import *
+from mi_analysis_dynamic_single import mi_analysis_dynamic_single
 
 class Analyzer:
 

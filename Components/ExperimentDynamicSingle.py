@@ -57,9 +57,6 @@ class ExperimentDynamicSingle:
             diffusion = noise_scaling * noise[i-1]
             stim[i] = stim[i-1] + drift + diffusion
 
-        #if self.debug:
-        #    plot
-
         return stim
     
     def _noise_lvl_injecter(self, run):
