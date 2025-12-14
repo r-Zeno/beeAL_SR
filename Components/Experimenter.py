@@ -7,15 +7,14 @@ from ExperimentDynamicSingle import *
 
 class Experimenter:
 
-    def __init__(self, model:GeNNModel, exp_paras:dict, folder:str, spk_rec_steps, debugmode:bool):
+    def __init__(self, model:GeNNModel, exp_paras:dict, folder:str, which_exp:str, debugmode:bool):
 
         self.data_paths = []
         self.folder = folder
         self.model = model
-        self.spk_rec_steps = spk_rec_steps
         self.debug = debugmode
 
-        self.exp_type = exp_paras["which_exp"]
+        self.exp_type = which_exp
         self.paras = exp_paras[self.exp_type]
         # assuming all possible exp define runs and trial numbers
         self.runs = self.paras["num_runs"]

@@ -9,8 +9,8 @@ def mi_analysis_dynamic_single(stim, spk_t, spk_id, paras):
     spk_t = spk_t
     spk_id = spk_id
 
-    sigma = paras["sigma_filter_ms"]
-    neuron2analyze = int(paras["pn_neuron_idx_1based"]) - 1
+    sigma = paras["sigma_kernel_ms"]
+    neuron2analyze = int(paras["neuron_idx_1based"]) - 1
     sim_time = paras["sim_time_secs"]
     dt = paras["timestep_ms"]
     dt_secs = dt / 1000
@@ -26,7 +26,7 @@ def mi_analysis_dynamic_single(stim, spk_t, spk_id, paras):
 
     sigma_bins = sigma/dt
 
-    smooth_rate = gaussian_filter1d(spk_array, sigma= sigma_bins, mode="constant") / dt_secs
+    smooth_rate = gaussian_filter1d(spk_array, sigma=sigma_bins, mode="constant") / dt_secs
 
     rate_ds = smooth_rate[::step_ds]
     stim_ds = stim_raw[::step_ds]

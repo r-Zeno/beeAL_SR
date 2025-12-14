@@ -1,0 +1,208 @@
+{
+    "simulation_parameters": {
+
+        "which_exp": "DynamicSingle",
+        "debugmode": true
+
+    },
+
+    "model_parameters": {
+
+        "num": {
+        "glo": 160,
+        "orn": 60,
+        "pn": 5,
+        "ln": 25
+        },
+
+        "I_background": false,
+    
+        "param_or": {},
+
+        "initial_param_or": {
+            "r0":1.0,
+            "rb_0": 0.0, "ra_0": 0.0,
+            "rb_1": 0.0, "ra_1": 0.0,
+            "rb_2": 0.0, "ra_2": 0.0,
+            "ra": 0.0,
+            "kp1cn_0": 0.0, "km1_0": 0.0, "kp2_0": 0.0, "km2_0":0.0,
+            "kp1cn_1": 0.0, "km1_1": 0.0, "kp2_1": 0.0, "km2_1":0.0,
+            "kp1cn_2": 0.0, "km1_2": 0.0, "kp2_2": 0.0, "km2_2":0.0
+        },
+
+        "param_orn": {
+            "C_mem": 1.0,
+            "V_reset": -70.0,
+            "V_thresh": -40.0,
+            "V_leak": -60.0,
+            "g_leak": 0.01,
+            "r_scale": 10.0,
+            "g_adapt": 0.0015,
+            "V_adapt": -70.0,
+            "tau_adapt": 1000.0,
+            "noise_A": 0.0,
+            "I_background": 112.7
+        },
+
+        "initial_param_orn": {
+            "V": -60.0,
+            "a": 0.0
+        },
+
+        "param_pn": {
+            "C_mem": 1.0,
+            "V_reset": -70.0,
+            "V_thresh": -40.0,
+            "V_leak": -60.0,
+            "g_leak": 0.01,
+            "r_scale": 1.0,
+            "g_adapt": 0.0,
+            "V_adapt": -70.0,
+            "tau_adapt": 1000.0,
+            "noise_A": 0.0,
+            "I_background": 150.05
+        },
+
+        "initial_param_pn":  {
+            "V": -60.0,
+            "a": 0.0
+        },
+
+        "param_ln": {
+            "C_mem": 1.0,
+            "V_reset": -70.0,
+            "V_thresh": -40.0,
+            "V_leak": -60.0,
+            "g_leak": 0.01,
+            "r_scale": 1.0,
+            "g_adapt": 0.0005,
+            "V_adapt": -70.0,
+            "tau_adapt": 1000.0,
+            "noise_A": 0.0,
+            "I_background": 37.7
+        },
+
+        "initial_param_ln":  {
+            "V": -60.0,
+            "a": 0.0
+        },
+        
+        "spk_rec_steps": 1000,
+
+        "n_orn_pn": 12,
+
+        "orns_pns_ini": {
+            "g": 0.008
+        },
+
+        "orns_pns_post_params": {
+            "tau": 10.0,
+            "E": 0.0
+        },
+
+        "n_orn_ln": 12,
+        
+        "orns_lns_ini": {
+            "g": 0.008
+        },
+        
+        "orns_lns_post_params": {
+            "tau": 10.0,
+            "E": 0.0
+        },
+        
+        "pns_lns_ini": {
+            "g": 0.001
+        },
+        
+        "pns_lns_post_params": {
+            "tau": 10.0,
+            "E": 0.0
+        },
+        
+        "lns_pns_g": {
+            "g": 5.5e-05
+        },
+
+        "lns_pns_post_params": {
+            "tau": 20.0,
+            "E": -80.0
+        },
+        
+        "lns_lns_g": {
+            "g": 2e-05
+        },
+        
+        "lns_lns_post_params": {
+            "tau": 20.0,
+            "E": -80.0
+        },
+        
+        "components": {
+            "neurons": {
+                "or": true,
+                "orn": true,
+                "pn": true,
+                "ln": true,
+                "eln": false
+            },
+            "synapses": {
+                "or2orn": true,
+                "orn2pn": true,
+                "orn2ln": true,
+                "pn2ln": true,
+                "ln2pn": true,
+                "ln2ln": true
+            },
+            "spikes to record": {
+                "orn": true,
+                "pn": true,
+                "ln": true,
+                "eln": false
+            }
+        }
+    },
+
+    "experiment_parameters": {
+
+        "DynamicSingle": {
+
+            "noise": {
+                "noiselvl_min": 0,
+                "noiselvl_max": 4,
+                "noiselvl_steps": 1,
+                "noisy_pop": ["orn", "ln", "pn"]
+            },
+
+            "spike_recording_steps_ms": 100,
+
+            "pop_to_record": ["pn"],
+
+            "exp_duration_s": 5000,
+            
+            "stimulus": {
+                "autocorrelation_time_s": 1.1e-5,
+                "expected_value_nA": 0.5,
+                "standard_dev_nA": 0.05,
+                "random_seed": false
+            }
+        }
+
+    },
+
+    "analysis_parameters": {
+
+        "DynamicSingle": {
+
+            "pop_to_analyze": ["pn"],
+            "k_neighbors": 4,
+            "sigma_kernel_ms": 100,
+            "neuron_idx_1based": 350,
+            "timestep_ms": 0.1,
+            "downsample_step_ms": 200
+
+        }
+
+    }
+
+}

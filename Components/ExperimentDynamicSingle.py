@@ -10,23 +10,23 @@ class ExperimentDynamicSingle:
 
         self.debug = debug
         self.stim_generated = stim_generated
-        noise_max = paras["noise"]["noiselvl_min"]
-        noise_min = paras["noise"]["noiselvl_max"]
+        noise_min = paras["noise"]["noiselvl_min"]
+        noise_max = paras["noise"]["noiselvl_max"]
         steps = paras["noise"]["noiselvl_steps"]
         self.noisy_pop = paras["noise"]["noisy_pop"]
         # normalized by integration timestep
         self.noise_lvls = np.divide(np.linspace(noise_min, noise_max, steps), np.sqrt(model.dt))
         self.model = model
 
-        self.spk_rec_steps = paras["spk_rec_steps_ms"]
+        self.spk_rec_steps = paras["spike_recording_steps_ms"]
         self.pop2record = paras["pop_to_record"]
 
-        self.duration = paras["exp_duration_s"]
-        self.tau = paras["autocorellation_time_s"]
-        self.mean_value = paras["expected_value"]
-        self.stim_sd = paras["standard_dev"]
-        self.seed = paras["rndm_seed"]
-        if self.seed == 0:
+        self.duration = paras["stimulus"]["exp_duration_s"]
+        self.tau = paras["stimulus"]["autocorrelation_time_s"]
+        self.mean_value = paras["stimulus"]["expected_value"]
+        self.stim_sd = paras["stimulus"]["standard_dev"]
+        self.seed = paras["stimulus"]["random_seed"]
+        if self.seed is False:
             self.seed = None
         self.dt = model.dt
 
