@@ -15,17 +15,16 @@ class Experimenter:
         self.debug = debugmode
 
         self.exp_type = which_exp
-        self.paras = exp_paras[self.exp_type]
+        self.paras = exp_paras
         # assuming all possible exp define runs and trial numbers
-        self.runs = self.paras["num_runs"]
-        self.trials = self.paras["num_trials"]
+        self.runs = self.paras["noise"]["noiselvl_steps"]
+        self.trials = self.paras["iterations_per_noise_lvl"]
 
         self.path = os.path.join(folder, self.exp_type)
 
     def run(self):
 
-        spk_id_paths = []
-        spk_t_paths = []
+        data_log = []
 
         match self.exp_type:
 
@@ -39,7 +38,6 @@ class Experimenter:
                 stim_path = []
                 pop2record = self.paras["pop_to_record"]
                 stim_gen = None
-                data_log = []
 
                 for i in range(self.runs):
 
@@ -48,15 +46,17 @@ class Experimenter:
 
                     for j in range(self.trials):
 
-                        exp = ExperimentDynamicSingle(self.paras, self.model, stim_gen)
+                        exp = ExperimentDynamicSingle(self.paras, self.model, stim_gen, self.debug)
                         stim, spk_id, spk_t = exp.run(i)
                         
                         for pop in pop2record:
 
                             spk_id_path = os.path.join(dirname, f"spk_id_lvl{i}_it{j}_{pop}.npy")
                             spk_t_path = os.path.join(dirname, f"spk_t_lvl{i}_it{j}_{pop}.npy")
-                            np.save(spk_id_path, spk_id[pop])
-                            np.save(spk_t_path, spk_t[pop])
+                            flat_spk_id = np.concatenate(spk_id[pop])
+                            flat_spk_t = np.concatenate(spk_t[pop])
+                            np.save(spk_id_path, flat_spk_id)
+                            np.save(spk_t_path, flat_spk_t)
 
                             data_log.append({
                                 "level": i,
@@ -73,8 +73,8 @@ class Experimenter:
 
                             stim_gen = stim
 
-                        del stim, data_log
+                        del stim, spk_id, spk_t, flat_spk_id, flat_spk_t
                         
             case _: raise ValueError("invalid experiment selected, check json")
 
-        return stim_path, spk_id_paths, spk_t_paths
+        return stim_path, data_log

@@ -389,8 +389,8 @@ def data_log_compile(data_log):
 
         if lvl not in data_log_org:
             data_log_org[lvl] = {}
-        if trial not in data_log_org:
-            data_log_org[trial] = {}
+        if trial not in data_log_org[lvl]:
+            data_log_org[lvl][trial] = {}
 
         data_log_org[lvl][trial][pop] = {
             "spk_id_path": elmnt["spk_id_path"],

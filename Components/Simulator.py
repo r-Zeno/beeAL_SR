@@ -46,7 +46,9 @@ class Simulator:
         self.exp_name = self.sim_paras["which_exp"]
         self.debugmode = self.sim_paras["debugmode"]
         self.exp_paras = parameters["experiment_parameters"][self.exp_name]
-        self.anal_paras = parameters["analysis-parameters"][self.exp_name]
+        self.anal_paras = parameters["analysis_parameters"][self.exp_name]
+        self.target_pop = self.exp_paras["stimulus"]["target_pop"]
+        self.sim_time_s = self.exp_paras["exp_duration_s"]
 
     def run(self):
         
@@ -58,7 +60,7 @@ class Simulator:
         self.sim_settings["eperiment"] = self.exp_name
         self.sim_settings["experiment_settings"] = self.exp_paras
         
-        build_plan = ModelBuilder(self.mod_paras, self.exp_name)
+        build_plan = ModelBuilder(self.mod_paras, self.exp_name, self.sim_time_s, self.target_pop)
         model = build_plan.build()
 
         #data_paths = []
@@ -77,7 +79,7 @@ class Simulator:
         timetaken_sim = round(end - start, 2)
         print(f"Simulations ended, it took {timetaken_sim}")
 
-        analysis = Analyzer(self.folder, self.anal_paras, stim_path, data_log, self.exp_name)
+        analysis = Analyzer(self.folder, self.anal_paras, stim_path, data_log, self.exp_name, self.debugmode)
         res_path = analysis.run() 
 
         ####### All this must be handled by Experimenter, Analyzer and Plotter #######

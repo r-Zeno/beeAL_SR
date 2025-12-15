@@ -1,4 +1,4 @@
 from Simulator import Simulator
 
-sim = Simulator("parameters.json")
+sim = Simulator("parameters_template.json")
 sim.run()

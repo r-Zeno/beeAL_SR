@@ -21,10 +21,10 @@ class ExperimentDynamicSingle:
         self.spk_rec_steps = paras["spike_recording_steps_ms"]
         self.pop2record = paras["pop_to_record"]
 
-        self.duration = paras["stimulus"]["exp_duration_s"]
+        self.duration = paras["exp_duration_s"]
         self.tau = paras["stimulus"]["autocorrelation_time_s"]
-        self.mean_value = paras["stimulus"]["expected_value"]
-        self.stim_sd = paras["stimulus"]["standard_dev"]
+        self.mean_value = paras["stimulus"]["expected_value_nA"]
+        self.stim_sd = paras["stimulus"]["standard_dev_nA"]
         self.seed = paras["stimulus"]["random_seed"]
         if self.seed is False:
             self.seed = None
@@ -33,8 +33,8 @@ class ExperimentDynamicSingle:
         self.spike_t = {}
         self.spike_id = {}
         for pop in self.pop2record:
-            self.spike_t[pop] = np.array()
-            self.spike_id[pop] = np.array()
+            self.spike_t[pop] = []
+            self.spike_id[pop] = []
 
 
     def _stim_gen(self, time, dt, tau_s, mean, sigma, seed=None):
@@ -73,18 +73,19 @@ class ExperimentDynamicSingle:
     def run(self, run):
 
         sim_time = self.duration * 1000 # in ms
+        pull_rate_steps = int(self.spk_rec_steps / self.model.dt)
 
         if self.stim_generated is None:
             stim = self._stim_gen(sim_time, self.dt, self.tau, self.mean_value, self.stim_sd, self.seed)
         else: stim = self.stim_generated
 
-        self.model.load(num_recording_timesteps = int(self.spk_rec_steps))
+        self.model.load(num_recording_timesteps = pull_rate_steps)
 
         self._noise_lvl_injecter(run)
         
         # if this returns error, then the custom current source model cannot be added to the model object
         # and will need to be passed by Simulator from ModelBuilder :(
-        var2input = self.model.input_source.extra_global_params["input_stream"]
+        var2input = self.model.input_model.extra_global_params["input_stream"]
         var2input.view[:] = stim
         var2input.push_to_device()
 
@@ -94,12 +95,14 @@ class ExperimentDynamicSingle:
             self.model.step_time()
 
             # spike train pulling loop
-            if self.model.t%self.spk_rec_steps:
+            if self.model.timestep%pull_rate_steps == 0:
+                
+                self.model.pull_recording_buffers_from_device()
 
                 for pop in self.pop2record:
                     pop2pull = self.model.neuron_populations[pop]
 
-                    if pop2pull.spike_recording_data[0][0] > 0:
+                    if pop2pull.spike_recording_data[0][0].size > 0:
                         self.spike_t[pop].append(pop2pull.spike_recording_data[0][0])
                         self.spike_id[pop].append(pop2pull.spike_recording_data[0][1])
                         if self.debug: print(f"spikes fetched for time {self.model.t} in {pop}")

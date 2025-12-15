@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pygenn
 from pygenn import create_var_ref, init_postsynaptic, init_sparse_connectivity
 from pygenn.genn_model import GeNNModel, create_weight_update_model, create_postsynaptic_model, create_sparse_connect_init_snippet, create_var_init_snippet, init_weight_update, create_current_source_model
@@ -16,7 +17,7 @@ class ModelBuilder:
     - paras: parameters dictionary (json file).
     - dt: default to 0.1 ms.
     """
-    def __init__(self, paras:dict, exp_type, target_pop, dt=0.1):
+    def __init__(self, paras:dict, exp_type, sim_time, target_pop, dt=0.1):
 
         try:
             os.environ['CUDA_PATH'] = '/usr/local/cuda'
@@ -29,6 +30,7 @@ class ModelBuilder:
         self.paras = paras
         self.lif_wback = self.paras["I_background"]
         self.dt = dt
+        self.sim_time_s = sim_time
 
         # check if float32 is good here
         self.model = GeNNModel("double", "beeAL", backend="CUDA") # for linux add backend="CUDA"
@@ -113,7 +115,7 @@ class ModelBuilder:
             } // here endRow was removed, as there doesnt seem to exist a genn5 correspondent
             """,
             col_build_code=None,
-            calc_max_row_len_func=lambda num_pre, num_post, pars: int(num_post / num_pre), # helper fucntion "create_cmlf_class" no longer needed in GeNN5
+            calc_max_row_len_func=lambda num_pre, num_post, pars: int(num_post / num_pre), # helper function "create_cmlf_class" no longer needed in GeNN5
         )
 
         self.ra_from_or = create_var_ref(self.ors, "ra")
@@ -486,25 +488,33 @@ class ModelBuilder:
 
         return adapt_lifi
     
-    def _time_varying_input_model(self, target_pop):
+    def _time_varying_input_model(self, target_pop_name):
 
         input_model = create_current_source_model(
             "varying_input",
-            extra_global_params = [("input_stream", "scalar")],
+            vars = [("step_idx", "scalar")],
+            extra_global_params = [("input_stream", "scalar*")],
             injection_code = 
             """
-            if(id >= 4739 && id <= 4799) // targetting the middle glom
+            int idx = (int)step_idx;
+
+            if(id >= 47399 && id <= 47999) // targetting the middle-1 glom
             {
-            int t_idx = int(t / dt) // if t is not provided by genn as a default, need to create a "t" counter
-            injectCurrent(input_stream[t_idx])
+            injectCurrent(input_stream[idx]);
             }
+
+            step_idx += 1.0;
             """
         )
 
-        custom_cs = self.model.add_current_source("VaryingInput", input_model, target_pop, {}, {})
+        target_pop = self.model.neuron_populations[target_pop_name]
+        custom_cs = self.model.add_current_source("VaryingInput", input_model, target_pop, {}, {"step_idx": 0.0})
 
-        # this is needed because the custom cs model is to be modified later (giving the actual input stream)
-        # and it is nicer to attach it to the model object, without passing it through Simulator
+        # must preallocate mem for stim array on gpu
+        num_timesteps = int(self.sim_time_s * 1000 / self.model.dt)
+        buffer = np.zeros(num_timesteps, dtype=np.float64)
+        custom_cs.extra_global_params['input_stream'].set_init_values(buffer)
+
         self.model.input_model = custom_cs
 
 

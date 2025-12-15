@@ -5,7 +5,7 @@ from mi_analysis_dynamic_single import mi_analysis_dynamic_single
 
 class Analyzer:
 
-    def __init__(self, folder, paras, stim_path, data_paths, which_exp):
+    def __init__(self, folder, paras, stim_path, data_paths, which_exp, debugmode:bool):
 
         self.paras = paras
         self.exp_type = which_exp
@@ -13,6 +13,7 @@ class Analyzer:
         self.data = data_log_compile(data_paths)
         self.folder = folder
         self.pop2analyze = self.paras["pop_to_analyze"]
+        self.debugmode = debugmode
 
     def run(self):
 
@@ -44,7 +45,10 @@ class Analyzer:
                             mi = mi_analysis_dynamic_single(stim, spk_id, spk_t, self.paras)
                             mi_vals.append(mi)
 
+                mi_vals_flat = np.array(mi_vals)
                 mi_path = os.path.join(self.folder, "mi_values.npy")
-                np.save(mi_vals, mi_path)
+                np.save(mi_path, mi_vals_flat)
+
+                if self.debugmode: print(list(mi_vals))
 
                 return mi_path

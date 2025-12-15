@@ -10,7 +10,7 @@
 
         "num": {
         "glo": 160,
-        "orn": 60,
+        "orn": 600,
         "pn": 5,
         "ln": 25
         },
@@ -36,12 +36,11 @@
             "V_thresh": -40.0,
             "V_leak": -60.0,
             "g_leak": 0.01,
-            "r_scale": 10.0,
+            "r_scale": 1.0,
             "g_adapt": 0.0015,
             "V_adapt": -70.0,
             "tau_adapt": 1000.0,
-            "noise_A": 0.0,
-            "I_background": 112.7
+            "noise_A": 0.0
         },
 
         "initial_param_orn": {
@@ -59,8 +58,7 @@
             "g_adapt": 0.0,
             "V_adapt": -70.0,
             "tau_adapt": 1000.0,
-            "noise_A": 0.0,
-            "I_background": 150.05
+            "noise_A": 0.0
         },
 
         "initial_param_pn":  {
@@ -78,8 +76,7 @@
             "g_adapt": 0.0005,
             "V_adapt": -70.0,
             "tau_adapt": 1000.0,
-            "noise_A": 0.0,
-            "I_background": 37.7
+            "noise_A": 0.0
         },
 
         "initial_param_ln":  {
@@ -140,14 +137,14 @@
         
         "components": {
             "neurons": {
-                "or": true,
+                "or": false,
                 "orn": true,
                 "pn": true,
                 "ln": true,
                 "eln": false
             },
             "synapses": {
-                "or2orn": true,
+                "or2orn": false,
                 "orn2pn": true,
                 "orn2ln": true,
                 "pn2ln": true,
@@ -155,7 +152,7 @@
                 "ln2ln": true
             },
             "spikes to record": {
-                "orn": true,
+                "orn": false,
                 "pn": true,
                 "ln": true,
                 "eln": false
@@ -167,10 +164,12 @@
 
         "DynamicSingle": {
 
+            "iterations_per_noise_lvl": 1,
+
             "noise": {
                 "noiselvl_min": 0,
-                "noiselvl_max": 4,
-                "noiselvl_steps": 1,
+                "noiselvl_max": 2,
+                "noiselvl_steps": 10,
                 "noisy_pop": ["orn", "ln", "pn"]
             },
 
@@ -178,13 +177,14 @@
 
             "pop_to_record": ["pn"],
 
-            "exp_duration_s": 5000,
+            "exp_duration_s": 50,
             
             "stimulus": {
-                "autocorrelation_time_s": 1.1e-5,
-                "expected_value_nA": 0.5,
-                "standard_dev_nA": 0.05,
-                "random_seed": false
+                "autocorrelation_time_s": 10.0,
+                "expected_value_nA": 0.22,
+                "standard_dev_nA": 0.07,
+                "random_seed": false,
+                "target_pop": "orn"
             }
         }
 
@@ -196,10 +196,11 @@
 
             "pop_to_analyze": ["pn"],
             "k_neighbors": 4,
-            "sigma_kernel_ms": 100,
-            "neuron_idx_1based": 350,
+            "sigma_kernel_ms": 200,
+            "neuron_idx_1based": 396,
             "timestep_ms": 0.1,
-            "downsample_step_ms": 200
+            "downsample_step_ms": 100,
+            "sim_time_secs": 50
 
         }
 
