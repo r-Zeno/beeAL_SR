@@ -45,15 +45,17 @@ class ExperimentDynamicSingle:
             np.random.seed(seed)
         
         steps = int(time/dt)
+        tau_ms = tau_s * 1000.0
 
         time = np.linspace(0, time, steps)
-        stim = np.zeros(steps)
+        stim = np.zeros(steps, dtype=np.float32)
         stim[0] = mean
-        noise_scaling = np.sqrt((2 * sigma * dt)/tau_s)
+        noise_var = sigma**2
+        noise_scaling = np.sqrt((2 * noise_var * dt)/tau_ms)
         noise = np.random.normal(0, 1, steps)
 
         for i in range(1, steps):
-            drift = -(1/tau_s) * (stim[i-1] - mean) * dt
+            drift = -(1/tau_ms) * (stim[i-1] - mean) * dt
             diffusion = noise_scaling * noise[i-1]
             stim[i] = stim[i-1] + drift + diffusion
 

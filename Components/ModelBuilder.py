@@ -32,8 +32,7 @@ class ModelBuilder:
         self.dt = dt
         self.sim_time_s = sim_time
 
-        # check if float32 is good here
-        self.model = GeNNModel("double", "beeAL", backend="CUDA") # for linux add backend="CUDA"
+        self.model = GeNNModel("float", "beeAL", backend="CUDA") # for linux add backend="CUDA"
         self.model.dt = dt
 
         self.ors = None

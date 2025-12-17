@@ -164,11 +164,11 @@
 
         "DynamicSingle": {
 
-            "iterations_per_noise_lvl": 1,
+            "iterations_per_noise_lvl": 10,
 
             "noise": {
-                "noiselvl_min": 0,
-                "noiselvl_max": 2,
+                "noiselvl_min": 0.0,
+                "noiselvl_max": 2.0,
                 "noiselvl_steps": 10,
                 "noisy_pop": ["orn", "ln", "pn"]
             },
@@ -177,13 +177,13 @@
 
             "pop_to_record": ["pn"],
 
-            "exp_duration_s": 50,
+            "exp_duration_s": 500,
             
             "stimulus": {
                 "autocorrelation_time_s": 10.0,
-                "expected_value_nA": 0.22,
+                "expected_value_nA": 0.20,
                 "standard_dev_nA": 0.07,
-                "random_seed": false,
+                "random_seed": 42,
                 "target_pop": "orn"
             }
         }
@@ -196,11 +196,11 @@
 
             "pop_to_analyze": ["pn"],
             "k_neighbors": 4,
-            "sigma_kernel_ms": 200,
+            "sigma_kernel_ms": 100,
             "neuron_idx_1based": 396,
             "timestep_ms": 0.1,
-            "downsample_step_ms": 100,
-            "sim_time_secs": 50
+            "downsample_step_ms": 25,
+            "sim_time_secs": 500
 
         }
 

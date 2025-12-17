@@ -25,8 +25,8 @@ class Simulator:
         simdirname = "simulations"
         current_dir = os.path.join(current_dir, simdirname)
         now = time.strftime("%Y%m%d_%H%M%S")
-        dirname = f"sim_{now}"
-        self.folder = os.path.join(current_dir, dirname)
+        self.dirname = f"sim_{now}"
+        self.folder = os.path.join(current_dir, self.dirname)
         os.makedirs(self.folder)
 
         #self.exp_paras = parameters["experiment_parameters"]
@@ -80,7 +80,9 @@ class Simulator:
         print(f"Simulations ended, it took {timetaken_sim}")
 
         analysis = Analyzer(self.folder, self.anal_paras, stim_path, data_log, self.exp_name, self.debugmode)
-        res_path = analysis.run() 
+        res_path = analysis.run()
+
+        if self.debugmode: print(self.dirname)
 
         ####### All this must be handled by Experimenter, Analyzer and Plotter #######
 
