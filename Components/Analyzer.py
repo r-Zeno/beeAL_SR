@@ -54,7 +54,7 @@ class Analyzer:
                             stim_z = st.zscore(stim, axis=None)
                             smooth_rate_z = st.zscore(smooth_rate, axis=None)
                             corr = np.corrcoef(stim_z, smooth_rate_z)
-                            corr_vals[it][lvl] = corr
+                            corr_vals[it][lvl] = corr[0][1]
 
 
                 mean_mi = np.mean(mi_vals, axis=0)
