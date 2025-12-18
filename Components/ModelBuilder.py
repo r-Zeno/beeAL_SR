@@ -171,7 +171,7 @@ class ModelBuilder:
     def _orn2pn(self):
 
         self.orns_pns_connect = create_sparse_connect_init_snippet(
-            "orn_al_type_specific",
+            "orn_pn_type_specific",
             params= ["n_orn", "n_trg", "n_pre"],
             # the logic for col building in the og is still unclear to me, must make sure that the "for (unsigned int c = 0; c < $(n_pre); c++) {}" I used instead of "if (c==0) { $(endCol)} ... c--" is correct
             # hope so. It is if the logic is: for each presynaptic neuron do this (so c is initialized = n_pre, then decreased at each iteration untill n_pre are "finished")
@@ -225,7 +225,7 @@ class ModelBuilder:
     def _orn2ln(self):
 
         self.orns_lns_connect = create_sparse_connect_init_snippet(
-            "orn_al_type_specific",
+            "orn_ln_type_specific",
             params= ["n_orn", "n_trg", "n_pre"],
             # the logic for col building in the og is still unclear to me, must make sure that the "for (unsigned int c = 0; c < $(n_pre); c++) {}" I used instead of "if (c==0) { $(endCol)} ... c--" is correct
             # hope so. It is if the logic is: for each presynaptic neuron do this (so c is initialized = n_pre, then decreased at each iteration untill n_pre are "finished")
@@ -497,7 +497,7 @@ class ModelBuilder:
             """
             int idx = (int)step_idx;
 
-            if(id >= 47399 && id <= 47999) // targetting the middle-1 glom
+            if(id >= 47400 && id <= 47999) // targeting the middle-1 glom
             {
             injectCurrent(input_stream[idx]);
             }

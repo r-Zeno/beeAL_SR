@@ -19,7 +19,7 @@ class Simulator:
         self.sim_settings = {}
 
         with open(parameters_path) as f:
-            parameters = json.load(f)
+            self.parameters = json.load(f)
         
         current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         simdirname = "simulations"
@@ -41,12 +41,12 @@ class Simulator:
         #self.selection_criterion = self.sim_paras["selection_criterion"]
         #self.pops = self.dist_paras["which_pop"]
 
-        self.mod_paras = parameters["model_parameters"]
-        self.sim_paras = parameters["simulation_parameters"]
+        self.mod_paras = self.parameters["model_parameters"]
+        self.sim_paras = self.parameters["simulation_parameters"]
         self.exp_name = self.sim_paras["which_exp"]
         self.debugmode = self.sim_paras["debugmode"]
-        self.exp_paras = parameters["experiment_parameters"][self.exp_name]
-        self.anal_paras = parameters["analysis_parameters"][self.exp_name]
+        self.exp_paras = self.parameters["experiment_parameters"][self.exp_name]
+        self.anal_paras = self.parameters["analysis_parameters"][self.exp_name]
         self.target_pop = self.exp_paras["stimulus"]["target_pop"]
         self.sim_time_s = self.exp_paras["exp_duration_s"]
 
@@ -83,6 +83,9 @@ class Simulator:
         res_path = analysis.run()
 
         if self.debugmode: print(self.dirname)
+
+        with open(os.path.join(self.folder, "sim_settings.json"), "w") as fp:
+            json.dump(self.parameters, fp, indent=4)
 
         ####### All this must be handled by Experimenter, Analyzer and Plotter #######
 

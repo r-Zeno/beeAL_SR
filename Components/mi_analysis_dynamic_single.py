@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from sklearn.feature_selection import mutual_info_regression
+from sklearn.feature_selection import mutual_info_regression, mutual_info_classif
 from scipy.ndimage import gaussian_filter1d
 
 def mi_analysis_dynamic_single(stim, spk_id, spk_t, paras, debug, folder, lvl, it):
@@ -31,9 +31,22 @@ def mi_analysis_dynamic_single(stim, spk_id, spk_t, paras, debug, folder, lvl, i
 
     if debug: np.save(os.path.join(folder, f"smoothed_rate_lvl{lvl}_it{it}.npy"), smooth_rate)
 
-    rate_ds = smooth_rate[::step_ds]
-    stim_ds = stim_raw[::step_ds]
+    rate_ds = smooth_rate[::step_ds].copy()
+    stim_ds = stim_raw[::step_ds].copy()
 
     mi = mutual_info_regression(stim_ds.reshape(-1,1), rate_ds, n_neighbors = k)[0]
+    
+    bin = int(10/dt)
+    stim_ds_dis = np.zeros(shape=int(n_elements/bin))
+    spks_ds_dis = np.zeros(shape=int(n_elements/bin))
 
-    return mi, smooth_rate
+    for i in range(0, n_elements, bin):
+        values = stim_raw[i:i+bin]
+        stim_ds_dis[i//bin] = np.mean(values)
+
+        spks = np.sum(spk_array[i:i+bin])
+        spks_ds_dis[i//bin] = int(spks)
+
+    mi_dis = mutual_info_classif(stim_ds_dis.reshape(-1,1), spks_ds_dis, discrete_features=False,n_neighbors=k)[0]
+
+    return mi, smooth_rate, mi_dis
