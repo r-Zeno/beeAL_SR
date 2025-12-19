@@ -9,8 +9,8 @@
     "model_parameters": {
 
         "num": {
-        "glo": 160,
-        "orn": 600,
+        "glom": 1,
+        "orn": 60000,
         "pn": 5,
         "ln": 25
         },
@@ -86,8 +86,6 @@
         
         "spk_rec_steps": 1000,
 
-        "n_orn_pn": 120,
-
         "orns_pns_ini": {
             "g": 0.008
         },
@@ -96,8 +94,6 @@
             "tau": 10.0,
             "E": 0.0
         },
-
-        "n_orn_ln": 24,
         
         "orns_lns_ini": {
             "g": 0.008
@@ -197,7 +193,10 @@
             "pop_to_analyze": ["pn"],
             "k_neighbors": 4,
             "sigma_kernel_ms": 200,
-            "neuron_idx_1based": 396,
+            "neuron_to_analyze":{
+                "auto": true,
+                "custom_idx_1based": 396
+            },
             "timestep_ms": 0.1,
             "downsample_step_ms": 50,
             "sim_time_secs": 500,

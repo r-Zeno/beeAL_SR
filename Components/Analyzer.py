@@ -8,14 +8,15 @@ from mi_analysis_dynamic_single import mi_analysis_dynamic_single
 
 class Analyzer:
 
-    def __init__(self, folder, paras, stim_path, data_paths, which_exp, debugmode:bool):
+    def __init__(self, folder, paras_an, paras_model, stim_path, data_paths, which_exp, debugmode:bool):
 
-        self.paras = paras
+        self.paras_an = paras_an
+        self.paras_model = paras_model
         self.exp_type = which_exp
         self.stim_path = stim_path
         self.data = data_log_compile(data_paths)
         self.folder = folder
-        self.pop2analyze = self.paras["pop_to_analyze"]
+        self.pop2analyze = self.paras_an["pop_to_analyze"]
         self.debugmode = debugmode
 
     def run(self):
@@ -56,7 +57,8 @@ class Analyzer:
                                 self.pop2analyze,
                                 self.data[lvl][it],
                                 stim,
-                                self.paras,
+                                self.paras_an,
+                                self.paras_model,
                                 self.folder,
                                 self.debugmode
                             )
@@ -99,7 +101,7 @@ class Analyzer:
 
                 return mi_path
 
-def analysis_trial_dynamic_single(lvl, it, pops, data, stim, paras, folder, debugmode):
+def analysis_trial_dynamic_single(lvl, it, pops, data, stim, paras_an, paras_model, folder, debugmode):
     """
     Function that defines the mi/corr computation for each worker to allow parallelization.
     """
@@ -117,7 +119,7 @@ def analysis_trial_dynamic_single(lvl, it, pops, data, stim, paras, folder, debu
             print(f"starting analys of run: {lvl}, it: {it}")
             start_mi = time.perf_counter()
 
-        mi, smooth_rate, mi_bin = mi_analysis_dynamic_single(stim, spk_id, spk_t, paras, debugmode, folder, lvl, it)
+        mi, smooth_rate, mi_bin = mi_analysis_dynamic_single(stim, spk_id, spk_t, paras_an, paras_model, debugmode, folder, lvl, it)
 
         if debugmode:
             end_mi = time.perf_counter()

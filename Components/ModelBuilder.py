@@ -4,6 +4,7 @@ import pygenn
 from pygenn import create_var_ref, init_postsynaptic, init_sparse_connectivity
 from pygenn.genn_model import GeNNModel, create_weight_update_model, create_postsynaptic_model, create_sparse_connect_init_snippet, create_var_init_snippet, init_weight_update, create_current_source_model
 import time
+import math
 try:
     import pygenn.cuda_backend
 except: print("WARNING: No CUDA, GPU will not be used!")
@@ -17,7 +18,7 @@ class ModelBuilder:
     - paras: parameters dictionary (json file).
     - dt: default to 0.1 ms.
     """
-    def __init__(self, paras:dict, exp_type, sim_time, target_pop, dt=0.1):
+    def __init__(self, paras:dict, exp_type, sim_time, target_pop, debugmode:bool, dt=0.1):
 
         try:
             os.environ['CUDA_PATH'] = '/usr/local/cuda'
@@ -31,9 +32,15 @@ class ModelBuilder:
         self.lif_wback = self.paras["I_background"]
         self.dt = dt
         self.sim_time_s = sim_time
+        self.debugmode = debugmode
 
         self.model = GeNNModel("float", "beeAL", backend="CUDA") # for linux add backend="CUDA"
         self.model.dt = dt
+
+        self.n_glom = int(self.paras["num"]["glom"])
+        self.n_orn = int(self.paras["num"]["orn"])
+        self.n_ln = int(self.paras["num"]["ln"])
+        self.n_pn = int(self.paras["num"]["pn"])
 
         self.ors = None
         self.orns = None
@@ -57,7 +64,7 @@ class ModelBuilder:
 
         if ors:
             or_eq = self._or_model_builder()
-            self.ors = self.model.add_neuron_population("or", int(self.paras["num"]["glo"]), or_eq,
+            self.ors = self.model.add_neuron_population("or", self.n_glom, or_eq,
                                                         self.paras["param_or"], self.paras["initial_param_or"])
             print("added or population")
 
@@ -67,7 +74,7 @@ class ModelBuilder:
         
         # should use a for loop instead
         if orns:
-            self.orns = self.model.add_neuron_population("orn", int(self.paras["num"]["glo"])*int(self.paras["num"]["orn"]),
+            self.orns = self.model.add_neuron_population("orn", self.n_glom*self.n_orn,
                                                         adapt_lifi, self.paras["param_orn"],
                                                         self.paras["initial_param_orn"])
             self.orns.set_param_dynamic("noise_A", True) # needed to change noise lvl between runs without rebuilding the model
@@ -76,7 +83,7 @@ class ModelBuilder:
             print(f"added orn population, spike recording: {spike_orn}")
 
         if pns:
-            self.pns = self.model.add_neuron_population("pn", int(self.paras["num"]["glo"])*int(self.paras["num"]["pn"]),
+            self.pns = self.model.add_neuron_population("pn", self.n_glom*self.n_pn,
                                                         adapt_lifi, self.paras["param_pn"],
                                                         self.paras["initial_param_pn"])
             self.pns.set_param_dynamic("noise_A", True)
@@ -85,7 +92,7 @@ class ModelBuilder:
             print(f"added pn population, spike recording: {spike_pn}")
 
         if lns:
-            self.lns = self.model.add_neuron_population("ln", int(self.paras["num"]["glo"])*int(self.paras["num"]["ln"]),
+            self.lns = self.model.add_neuron_population("ln", self.n_glom*self.n_ln,
                                                         adapt_lifi, self.paras["param_ln"],
                                                         self.paras["initial_param_ln"])
             self.lns.set_param_dynamic("noise_A", True)
@@ -94,7 +101,7 @@ class ModelBuilder:
             print(f"added ln population, spike recording: {spike_ln}")
 
         if elns:
-            self.elns = self.model.add_neuron_population("eln", int(self.paras["num"]["glo"])*int(self.paras["num"]["elns"]),
+            self.elns = self.model.add_neuron_population("eln", int(self.paras["num"]["glom"])*int(self.paras["num"]["elns"]),
                                                         adapt_lifi, self.paras["param_eln"],
                                                         self.paras["initial_param_eln"])
             self.elns.set_param_dynamic("noise_A", True)
@@ -181,7 +188,7 @@ class ModelBuilder:
             const unsigned int glo = id_post / ((unsigned int) n_trg);
             const unsigned int offset = n_orn*glo;
             const unsigned int tid = gennrand_uniform()*n_orn;
-            addSynapse(offset + tid + id_pre_begin);
+            addSynapse(offset + tid);
             }
             """,
             row_build_code=None,
@@ -206,9 +213,9 @@ class ModelBuilder:
         self.orn_pn_conn = init_sparse_connectivity(
             self.orns_pns_connect,
             params={
-                "n_orn": int(self.paras["num"]["orn"]),
-                "n_trg": int(self.paras["num"]["pn"]),
-                "n_pre": int(self.paras["n_orn_pn"])
+                "n_orn": self.n_orn,
+                "n_trg": self.n_pn,
+                "n_pre": int(self.n_orn/self.n_pn)
             }
         )
 
@@ -235,7 +242,7 @@ class ModelBuilder:
             const unsigned int glo = id_post / ((unsigned int) n_trg);
             const unsigned int offset = n_orn*glo;
             const unsigned int tid = gennrand_uniform()*n_orn;
-            addSynapse(offset + tid + id_pre_begin);
+            addSynapse(offset + tid);
             }
             """,
             row_build_code=None,
@@ -260,9 +267,9 @@ class ModelBuilder:
         self.orn_ln_conn = init_sparse_connectivity(
             self.orns_lns_connect,
             params={
-                "n_orn": int(self.paras["num"]["orn"]),
-                "n_trg": int(self.paras["num"]["ln"]),
-                "n_pre": int(self.paras["n_orn_ln"])
+                "n_orn": self.n_orn,
+                "n_trg": self.n_ln,
+                "n_pre": int(self.n_orn/self.n_ln)
             }
         )
         
@@ -309,8 +316,8 @@ class ModelBuilder:
         self.pn_ln_conn = init_sparse_connectivity(
             self.pns_lns_connect,
             params={
-                "n_pn": int(self.paras["num"]["pn"]),
-                "n_ln": int(self.paras["num"]["ln"])
+                "n_pn": self.n_pn,
+                "n_ln": self.n_ln
             }
         )
 
@@ -489,15 +496,24 @@ class ModelBuilder:
     
     def _time_varying_input_model(self, target_pop_name):
 
+        target_glom = math.ceil(self.n_glom/2) - 1
+        idx_start = max(0, self.n_orn * target_glom)
+        idx_end = idx_start + self.n_orn - 1
+        if self.debugmode: print(f"stimulus will target orn id {idx_start} to {idx_end}, in glom id {target_glom}")
+
         input_model = create_current_source_model(
             "varying_input",
+            params = [("idx_start", "scalar"), ("idx_end", "scalar")],
             vars = [("step_idx", "scalar")],
             extra_global_params = [("input_stream", "scalar*")],
             injection_code = 
             """
             int idx = (int)step_idx;
 
-            if(id >= 47400 && id <= 47999) // targeting the middle-1 glom
+            int start = (int)idx_start;
+            int end = (int)idx_end;
+
+            if(id >= start && id <= end)
             {
             injectCurrent(input_stream[idx]);
             }
@@ -507,7 +523,16 @@ class ModelBuilder:
         )
 
         target_pop = self.model.neuron_populations[target_pop_name]
-        custom_cs = self.model.add_current_source("VaryingInput", input_model, target_pop, {}, {"step_idx": 0.0})
+        custom_cs = self.model.add_current_source(
+            "VaryingInput",
+            input_model,
+            target_pop,
+            {
+                "idx_start": float(idx_start),
+                "idx_end": float(idx_end)
+            },
+            {"step_idx": 0.0}
+            )
 
         # must preallocate mem for stim array on gpu
         num_timesteps = int(self.sim_time_s * 1000 / self.model.dt)

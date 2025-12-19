@@ -46,13 +46,13 @@ class Simulator:
         self.exp_name = self.sim_paras["which_exp"]
         self.debugmode = self.sim_paras["debugmode"]
         self.exp_paras = self.parameters["experiment_parameters"][self.exp_name]
-        self.anal_paras = self.parameters["analysis_parameters"][self.exp_name]
+        self.an_paras = self.parameters["analysis_parameters"][self.exp_name]
         self.target_pop = self.exp_paras["stimulus"]["target_pop"]
         self.sim_time_s = self.exp_paras["exp_duration_s"]
 
     def run(self):
         
-        # noiselvls_comp = self.noise_lvls.tolist() # converting the numpy array into a list to be inserted in dict
+        #noiselvls_comp = self.noise_lvls.tolist() # converting the numpy array into a list to be inserted in dict
         #print(f"starting simulations at noise levels: {noiselvls_comp}")
 
         #self.sim_settings["noise_levels"] = noiselvls_comp
@@ -60,7 +60,7 @@ class Simulator:
         self.sim_settings["eperiment"] = self.exp_name
         self.sim_settings["experiment_settings"] = self.exp_paras
         
-        build_plan = ModelBuilder(self.mod_paras, self.exp_name, self.sim_time_s, self.target_pop)
+        build_plan = ModelBuilder(self.mod_paras, self.exp_name, self.sim_time_s, self.target_pop, self.debugmode)
         model = build_plan.build()
 
         #data_paths = []
@@ -77,9 +77,9 @@ class Simulator:
 
         end = time.time()
         timetaken_sim = round(end - start, 2)
-        print(f"Simulations ended, it took {timetaken_sim}")
+        print(f"Simulations ended, it took {timetaken_sim:2f} secs or {timetaken_sim/60:2f} mins")
 
-        analysis = Analyzer(self.folder, self.anal_paras, stim_path, data_log, self.exp_name, self.debugmode)
+        analysis = Analyzer(self.folder, self.an_paras, self.mod_paras, stim_path, data_log, self.exp_name, self.debugmode)
         res_path = analysis.run()
 
         if self.debugmode: print(self.dirname)
