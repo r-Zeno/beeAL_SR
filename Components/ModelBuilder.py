@@ -30,6 +30,7 @@ class ModelBuilder:
 
         self.paras = paras
         self.lif_wback = self.paras["I_background"]
+        self.lif_wref = self.paras["refractory_period"]
         self.dt = dt
         self.sim_time_s = sim_time
         self.debugmode = debugmode
@@ -469,7 +470,39 @@ class ModelBuilder:
                 """
             )
 
-        elif not self.lif_wback:
+        elif self.lif_wref:
+            adapt_lifi = pygenn.create_neuron_model(
+                "adaptive_LIF",
+                params = [
+                    "C_mem", "V_reset", "V_thresh", "V_leak", "g_leak", "r_scale", "g_adapt", "V_adapt", "tau_adapt", "noise_A", "refrac_time"
+                ],
+                vars = [
+                    ("V", "scalar"), ("a", "scalar"), ("t_refrac", "scalar")
+                ],
+                sim_code = """
+                if(t_refrac > 0.0)
+                {
+                    V = V_reset;
+                    t_refrac -= dt;
+                }
+                else
+                {
+                    V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn + noise_A*gennrand_normal())*dt/C_mem;
+                }
+
+                a += -a*dt/tau_adapt;
+                """,
+                threshold_condition_code = """
+                V >= V_thresh
+                """,
+                reset_code = """
+                V = V_reset;
+                a += 0.5;
+                t_refrac = refrac_time;
+                """
+            )
+
+        else:
             adapt_lifi = pygenn.create_neuron_model(
                 "adaptive_LIF",
                 params = [
