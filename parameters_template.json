@@ -10,8 +10,8 @@
 
         "num": {
         "glom": 1,
-        "orn": 60000,
-        "pn": 5,
+        "orn": 120,
+        "pn": 1,
         "ln": 25
         },
 
@@ -21,7 +21,7 @@
         "param_or": {},
 
         "initial_param_or": {
-            "r0":1.0,
+            "r0": 1.0,
             "rb_0": 0.0, "ra_0": 0.0,
             "rb_1": 0.0, "ra_1": 0.0,
             "rb_2": 0.0, "ra_2": 0.0,
@@ -57,7 +57,7 @@
             "V_thresh": -40.0,
             "V_leak": -60.0,
             "g_leak": 0.01,
-            "r_scale": 0.01,
+            "r_scale": 1.0,
             "g_adapt": 0.0,
             "V_adapt": -70.0,
             "tau_adapt": 1000.0,
@@ -143,16 +143,16 @@
                 "or": false,
                 "orn": true,
                 "pn": true,
-                "ln": true,
+                "ln": false,
                 "eln": false
             },
             "synapses": {
                 "or2orn": false,
                 "orn2pn": true,
-                "orn2ln": true,
-                "pn2ln": true,
-                "ln2pn": true,
-                "ln2ln": true
+                "orn2ln": false,
+                "pn2ln": false,
+                "ln2pn": false,
+                "ln2ln": false
             },
             "spikes to record": {
                 "orn": false,
@@ -168,6 +168,14 @@
         "DynamicSingle": {
 
             "iterations_per_noise_lvl": 1,
+
+            "orn_n": {
+                "single_num": false,
+                "num_if_single": 120,
+                
+                "base": 2,
+                "range": 13
+            },
 
             "noise": {
                 "noiselvl_min": 0.0,

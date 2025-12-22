@@ -7,12 +7,13 @@ from ExperimentDynamicSingle import *
 
 class Experimenter:
 
-    def __init__(self, model:GeNNModel, exp_paras:dict, folder:str, which_exp:str, debugmode:bool):
+    def __init__(self, model:GeNNModel, exp_paras:dict, folder:str, which_exp:str, num_orn, debugmode:bool):
 
         self.data_paths = []
         self.folder = folder
         self.model = model
         self.debug = debugmode
+        self.num_orn = int(num_orn)
 
         self.exp_type = which_exp
         self.paras = exp_paras
@@ -41,24 +42,36 @@ class Experimenter:
 
                 for i in range(self.runs):
 
-                    dirname = os.path.join(self.folder,f"lvl_{i}")
+                    dirname = os.path.join(self.folder,f"pop_n{self.num_orn}_lvl_{i}")
                     os.makedirs(dirname, exist_ok=False)
 
                     for j in range(self.trials):
+
+                        if self.debug: 
+                            print("****************************")
+                            print(f"Starting Sim for pop size: {self.num_orn}, lvl: {i}, it: {j}")
+                            print("****************************")
 
                         exp = ExperimentDynamicSingle(self.paras, self.model, stim_gen, self.debug)
                         stim, spk_id, spk_t = exp.run(i)
                         
                         for pop in pop2record:
 
-                            spk_id_path = os.path.join(dirname, f"spk_id_lvl{i}_it{j}_{pop}.npy")
-                            spk_t_path = os.path.join(dirname, f"spk_t_lvl{i}_it{j}_{pop}.npy")
-                            flat_spk_id = np.concatenate(spk_id[pop])
-                            flat_spk_t = np.concatenate(spk_t[pop])
+                            spk_id_path = os.path.join(dirname, f"spk_id_pop_n{self.num_orn}_lvl{i}_it{j}_{pop}.npy")
+                            spk_t_path = os.path.join(dirname, f"spk_t_pop_n{self.num_orn}_lvl{i}_it{j}_{pop}.npy")
+
+                            if len(spk_id[pop]) > 0:
+                                flat_spk_id = np.concatenate(spk_id[pop])
+                                flat_spk_t = np.concatenate(spk_t[pop])
+                            else:
+                                flat_spk_id = np.array([], dtype=float)
+                                flat_spk_t = np.array([], dtype=float)
+
                             np.save(spk_id_path, flat_spk_id)
                             np.save(spk_t_path, flat_spk_t)
 
                             data_log.append({
+                                "num_orn": self.num_orn,
                                 "level": i,
                                 "trial": j,
                                 "pop": pop,

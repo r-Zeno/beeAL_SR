@@ -59,27 +59,43 @@ class Simulator:
         self.sim_settings["model_settings"] = self.mod_paras
         self.sim_settings["eperiment"] = self.exp_name
         self.sim_settings["experiment_settings"] = self.exp_paras
-        
-        build_plan = ModelBuilder(self.mod_paras, self.exp_name, self.sim_time_s, self.target_pop, self.debugmode)
-        model = build_plan.build()
+        single_num = self.exp_paras["orn_n"]["single_num"]
+        if single_num:
+            pop_numbers = [self.exp_paras["orn_n"]["num_if_single"]]
+        else:
+            max_range = self.exp_paras["orn_n"]["range"]
+            base = self.exp_paras["orn_n"]["base"]
+            pwrs = np.arange(1,max_range, dtype=int)
+            pop_numbers = base**pwrs
 
-        #data_paths = []
-        #run = 0
-        #for lvl in self.noise_lvls:
-        #    experiment = ExperimentStatic(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps, self.debugmode)
-        #    data_path = experiment.run(self.exp_1, self.exp_2)
-        #    data_paths.append(data_path)
-        #    run += 1
-        start = time.time()
+        data_log_full = []
 
-        experiment = Experimenter(model, self.exp_paras, self.folder, self.exp_name, self.debugmode)
-        stim_path, data_log = experiment.run()
+        for n in pop_numbers:
 
-        end = time.time()
-        timetaken_sim = round(end - start, 2)
+            self.mod_paras["num"]["orn"] = int(n)
+
+            build_plan = ModelBuilder(self.mod_paras, self.exp_name, self.sim_time_s, self.target_pop, self.debugmode)
+            model = build_plan.build()
+
+            #data_paths = []
+            #run = 0
+            #for lvl in self.noise_lvls:
+            #    experiment = ExperimentStatic(model, self.exp_paras, self.folder, run, lvl, self.spk_rec_steps, self.debugmode)
+            #    data_path = experiment.run(self.exp_1, self.exp_2)
+            #    data_paths.append(data_path)
+            #    run += 1
+            start = time.time()
+
+            experiment = Experimenter(model, self.exp_paras, self.folder, self.exp_name, n, self.debugmode)
+            stim_path, curr_data_log = experiment.run()
+
+            data_log_full.extend(curr_data_log)
+
+            end = time.time()
+            timetaken_sim = round(end - start, 2)
         print(f"Simulations ended, it took {timetaken_sim:2f} secs or {timetaken_sim/60:2f} mins")
 
-        analysis = Analyzer(self.folder, self.an_paras, self.mod_paras, stim_path, data_log, self.exp_name, self.debugmode)
+        analysis = Analyzer(self.folder, self.an_paras, self.mod_paras, stim_path, data_log_full, self.exp_name, pop_numbers, self.debugmode)
         res_path = analysis.run()
 
         if self.debugmode: print(self.dirname)

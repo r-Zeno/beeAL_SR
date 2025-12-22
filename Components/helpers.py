@@ -383,16 +383,19 @@ def data_log_compile(data_log):
 
     for elmnt in data_log:
 
+        num = elmnt["num_orn"]
         lvl = elmnt["level"]
         trial = elmnt["trial"]
         pop = elmnt["pop"]
 
-        if lvl not in data_log_org:
-            data_log_org[lvl] = {}
-        if trial not in data_log_org[lvl]:
-            data_log_org[lvl][trial] = {}
+        if num not in data_log_org:
+            data_log_org[num] = {}
+        if lvl not in data_log_org[num]:
+            data_log_org[num][lvl] = {}
+        if trial not in data_log_org[num][lvl]:
+            data_log_org[num][lvl][trial] = {}
 
-        data_log_org[lvl][trial][pop] = {
+        data_log_org[num][lvl][trial][pop] = {
             "spk_id_path": elmnt["spk_id_path"],
             "spk_t_path": elmnt["spk_t_path"]
         }

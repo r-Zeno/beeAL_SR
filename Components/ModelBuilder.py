@@ -88,6 +88,8 @@ class ModelBuilder:
                                                         adapt_lifi, self.paras["param_pn"],
                                                         self.paras["initial_param_pn"])
             self.pns.set_param_dynamic("noise_A", True)
+            if self.exp_type == "DynamicSingle":
+                self.pns.set_param_dynamic("r_scale", True)
             if spike_pn:
                 self.pns.spike_recording_enabled = True
             print(f"added pn population, spike recording: {spike_pn}")
@@ -178,7 +180,7 @@ class ModelBuilder:
 
     def _orn2pn(self):
 
-        self.orns_pns_connect = create_sparse_connect_init_snippet(
+        self.orns_pns_connect_rndm = create_sparse_connect_init_snippet(
             "orn_pn_type_specific",
             params= ["n_orn", "n_trg", "n_pre"],
             # the logic for col building in the og is still unclear to me, must make sure that the "for (unsigned int c = 0; c < $(n_pre); c++) {}" I used instead of "if (c==0) { $(endCol)} ... c--" is correct
@@ -196,6 +198,21 @@ class ModelBuilder:
             calc_max_col_len_func=lambda num_pre, num_post, pars: int(pars["n_pre"])
         )
 
+        self.orns_pns_connect_det = create_sparse_connect_init_snippet(
+            "orn_pn_deterministic",
+            params= ["n_orn", "n_trg"],
+            col_build_code="""
+            const unsigned int glo = id_post / ((unsigned int) n_trg);
+            const unsigned int offset = n_orn*glo;
+
+            for(unsigned int i = 0; i < (unsigned int)n_orn; i++)
+            {
+            addSynapse(offset + i);
+            }
+            """,
+            calc_max_col_len_func=lambda num_pre, num_post, pars: int(pars["n_orn"])
+        )
+
         self.v_pn_ref = create_var_ref(self.pns, "V")
 
         self.weight_update_init_orn2pn = init_weight_update(
@@ -211,14 +228,24 @@ class ModelBuilder:
             var_refs= {"V": self.v_pn_ref}
         )
 
-        self.orn_pn_conn = init_sparse_connectivity(
-            self.orns_pns_connect,
-            params={
-                "n_orn": self.n_orn,
-                "n_trg": self.n_pn,
-                "n_pre": int(self.n_orn/self.n_pn)
-            }
-        )
+        if self.n_pn == 1:
+            if self.debugmode: print("WARNING: using deterministic connection between ORN -> PN!")
+            self.orn_pn_conn = init_sparse_connectivity(
+                self.orns_pns_connect_det,
+                params={
+                    "n_orn": self.n_orn,
+                    "n_trg": self.n_pn
+                }
+            )
+        else:
+            self.orn_pn_conn = init_sparse_connectivity(
+                self.orns_pns_connect_det,
+                params={
+                    "n_orn": self.n_orn,
+                    "n_trg": self.n_pn,
+                    "n_pre": int(self.n_orn/self.n_pn)
+                }
+            )
 
         self.orns_pns = self.model.add_synapse_population(
                 "ORNs_PNs",
@@ -635,9 +662,9 @@ class ModelBuilder:
 
         # instead of this mess, should pass a dict with the options, to be checked by neuron_groups_init
         self._neuron_groups_init(
-            ors=("ors" in neurons_tobuild), orns=("orns" in neurons_tobuild),
-            pns=("pns" in neurons_tobuild), lns=("lns" in neurons_tobuild),
-            elns=("elns" in neurons_tobuild),
+            ors=("or" in neurons_tobuild), orns=("orn" in neurons_tobuild),
+            pns=("pn" in neurons_tobuild), lns=("ln" in neurons_tobuild),
+            elns=("eln" in neurons_tobuild),
             spike_orn=spikes_rec.get("orn", True), # the second argument set the defaults if not specified
             spike_pn=spikes_rec.get("pn", True),
             spike_ln=spikes_rec.get("ln", True),

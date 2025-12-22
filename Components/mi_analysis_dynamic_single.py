@@ -35,7 +35,7 @@ def mi_analysis_dynamic_single(stim, spk_id, spk_t, paras_an, paras_model, debug
 
     sigma_bins = sigma/dt
 
-    smooth_rate = gaussian_filter1d(spk_array, sigma=sigma_bins, mode="constant") / dt_secs
+    smooth_rate = (gaussian_filter1d(spk_array, sigma=sigma_bins, mode="constant") / dt_secs).astype(np.float32)
 
     if debug: np.save(os.path.join(folder, f"smoothed_rate_lvl{lvl}_it{it}.npy"), smooth_rate)
 
