@@ -74,7 +74,13 @@ class Simulator:
 
             self.mod_paras["num"]["orn"] = int(n)
 
-            build_plan = ModelBuilder(self.mod_paras, self.exp_name, self.sim_time_s, self.target_pop, self.debugmode)
+            build_plan = ModelBuilder(
+                self.mod_paras,
+                self.exp_name,
+                self.sim_time_s,
+                self.target_pop,
+                self.debugmode
+                )
             model = build_plan.build()
 
             #data_paths = []
@@ -86,7 +92,15 @@ class Simulator:
             #    run += 1
             start = time.time()
 
-            experiment = Experimenter(model, self.exp_paras, self.folder, self.exp_name, n, self.debugmode)
+            experiment = Experimenter(
+                model,
+                self.exp_paras,
+                self.folder,
+                self.exp_name,
+                n,
+                self.mod_paras["num"]["pn"],
+                self.debugmode
+                )
             stim_path, curr_data_log = experiment.run()
 
             data_log_full.extend(curr_data_log)
@@ -95,7 +109,16 @@ class Simulator:
             timetaken_sim = round(end - start, 2)
         print(f"Simulations ended, it took {timetaken_sim:2f} secs or {timetaken_sim/60:2f} mins")
 
-        analysis = Analyzer(self.folder, self.an_paras, self.mod_paras, stim_path, data_log_full, self.exp_name, pop_numbers, self.debugmode)
+        analysis = Analyzer(
+            self.folder,
+            self.an_paras,
+            self.mod_paras,
+            stim_path,
+            data_log_full,
+            self.exp_name,
+            pop_numbers,
+            self.debugmode
+            )
         res_path = analysis.run()
 
         if self.debugmode: print(self.dirname)

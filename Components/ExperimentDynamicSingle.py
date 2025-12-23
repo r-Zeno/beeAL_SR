@@ -6,7 +6,7 @@ from pygenn import genn_model
 
 class ExperimentDynamicSingle:
 
-    def __init__(self, paras, model:GeNNModel, stim_generated, debug:bool):
+    def __init__(self, paras, model:GeNNModel, stim_generated, num_orn, num_pn, debug:bool):
 
         self.debug = debug
         self.stim_generated = stim_generated
@@ -17,6 +17,8 @@ class ExperimentDynamicSingle:
         # normalized by integration timestep
         self.noise_lvls = np.divide(np.linspace(noise_min, noise_max, steps), np.sqrt(model.dt))
         self.model = model
+        self.num_orn = num_orn
+        self.num_pn = num_pn
 
         self.spk_rec_steps = paras["spike_recording_steps_ms"]
         self.pop2record = paras["pop_to_record"]
@@ -29,6 +31,8 @@ class ExperimentDynamicSingle:
         if self.seed is False:
             self.seed = None
         self.dt = model.dt
+
+        self.orn_to_pn_input_scale = paras["orn_n"]["pn_input_scale"]
 
         self.spike_t = {}
         self.spike_id = {}
@@ -72,9 +76,21 @@ class ExperimentDynamicSingle:
                 print(f"applying noise lvl {noise_lvl} in pop {pop}...")
                 popobj.set_dynamic_param_value("noise_A", noise_lvl)
 
+    def _input_orn_scale(self):
+
+        ratio = int(self.num_orn/self.num_pn)
+        dist = ratio/120
+        if dist is not 1:
+            scaling = np.float32(1/dist)
+        else: scaling = np.float32(1)
+
+        popobj = self.model.neuron_populations.get("pn")
+        popobj.set_dynamic_param_value("r_scale", scaling)
+        if self.debug: print(f"applied scaling {scaling} to pn input")
+
     def run(self, run):
 
-        sim_time = self.duration * 1000 # in ms
+        sim_time = self.duration*1000 # in ms
         pull_rate_steps = int(self.spk_rec_steps / self.model.dt)
 
         if self.stim_generated is None:
@@ -84,19 +100,21 @@ class ExperimentDynamicSingle:
         self.model.load(num_recording_timesteps = pull_rate_steps)
 
         self._noise_lvl_injecter(run)
+
+        if self.orn_to_pn_input_scale:
+            self._input_orn_scale()
         
-        # if this returns error, then the custom current source model cannot be added to the model object
-        # and will need to be passed by Simulator from ModelBuilder :(
         var2input = self.model.input_model.extra_global_params["input_stream"]
         var2input.view[:] = stim
         var2input.push_to_device()
 
+        # stab_time_dt = 0.2*1000/self.model.dt
         while self.model.t <= sim_time:
-            # need to give short time to stabilize LIF?            
+            # need to give short time to stabilize LIF (stab time)        
 
             self.model.step_time()
 
-            # spike train pulling loop
+            # spike pulling loop
             if self.model.timestep%pull_rate_steps == 0:
                 
                 self.model.pull_recording_buffers_from_device()

@@ -172,6 +172,8 @@
             "orn_n": {
                 "single_num": false,
                 "num_if_single": 120,
+
+                "pn_input_scale": true,
                 
                 "base": 2,
                 "range": 13

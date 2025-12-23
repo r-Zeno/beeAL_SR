@@ -7,13 +7,14 @@ from ExperimentDynamicSingle import *
 
 class Experimenter:
 
-    def __init__(self, model:GeNNModel, exp_paras:dict, folder:str, which_exp:str, num_orn, debugmode:bool):
+    def __init__(self, model:GeNNModel, exp_paras:dict, folder:str, which_exp:str, num_orn, num_pn, debugmode:bool):
 
         self.data_paths = []
         self.folder = folder
         self.model = model
         self.debug = debugmode
         self.num_orn = int(num_orn)
+        self.num_pn = int(num_pn)
 
         self.exp_type = which_exp
         self.paras = exp_paras
@@ -52,7 +53,7 @@ class Experimenter:
                             print(f"Starting Sim for pop size: {self.num_orn}, lvl: {i}, it: {j}")
                             print("****************************")
 
-                        exp = ExperimentDynamicSingle(self.paras, self.model, stim_gen, self.debug)
+                        exp = ExperimentDynamicSingle(self.paras, self.model, stim_gen, self.num_orn, self.num_pn, self.debug)
                         stim, spk_id, spk_t = exp.run(i)
                         
                         for pop in pop2record:
