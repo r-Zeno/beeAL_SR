@@ -170,10 +170,11 @@
             "iterations_per_noise_lvl": 1,
 
             "orn_n": {
-                "single_num": false,
+                "single_num": true,
                 "num_if_single": 120,
 
-                "pn_input_scale": true,
+                "pn_input_scale_relative_to_120_convergence": true,
+                "pn_input_scale_abs": false,
                 
                 "base": 2,
                 "range": 13

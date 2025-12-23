@@ -32,7 +32,7 @@ class ExperimentDynamicSingle:
             self.seed = None
         self.dt = model.dt
 
-        self.orn_to_pn_input_scale = paras["orn_n"]["pn_input_scale"]
+        self.orn_to_pn_input_scale = paras["orn_n"]["pn_input_scale_relative_to_120_convergence"]
 
         self.spike_t = {}
         self.spike_id = {}
@@ -76,12 +76,15 @@ class ExperimentDynamicSingle:
                 print(f"applying noise lvl {noise_lvl} in pop {pop}...")
                 popobj.set_dynamic_param_value("noise_A", noise_lvl)
 
-    def _input_orn_scale(self):
+    def _input_pn_scale_relative(self):
 
         ratio = int(self.num_orn/self.num_pn)
         dist = ratio/120
-        if dist is not 1:
+
+        if dist != 1:
             scaling = np.float32(1/dist)
+        elif dist == 0:
+            raise ValueError("pn cannot be 0!")
         else: scaling = np.float32(1)
 
         popobj = self.model.neuron_populations.get("pn")
@@ -102,7 +105,7 @@ class ExperimentDynamicSingle:
         self._noise_lvl_injecter(run)
 
         if self.orn_to_pn_input_scale:
-            self._input_orn_scale()
+            self._input_pn_scale_relative()
         
         var2input = self.model.input_model.extra_global_params["input_stream"]
         var2input.view[:] = stim
