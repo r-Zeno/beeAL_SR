@@ -126,7 +126,7 @@ def glo_avg(sdf: np.ndarray, n):
         gsdf[:,i]= np.mean(sdf[:,n*i:n*(i+1)],axis=1)
     return gsdf
 
-@jit(nopython=True) # next step is writing a CUDA kernel for this, passing spike data to c++ code,
+@jit(nopython=True) # next step is writing a CUDA kernel for this
 # as it takes too much (at least as long as the sim itself) when analyzing all the neurons from all pops
 def vp_metric(train_1, train_2, cost):
     """
