@@ -1,6 +1,8 @@
 import os
 import numpy as np
-import pdv_cuda
+try:
+    import pdv_cuda
+except: print("WARNING: you do not have the cuda kernel compiled")
 from matplotlib import pyplot as plt
 from numba import jit
 

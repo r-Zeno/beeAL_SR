@@ -55,7 +55,7 @@ class Experimenter:
 
                         exp = ExperimentDynamicSingle(self.paras, self.model, stim_gen, self.num_orn, self.num_pn, self.debug)
                         stim, spk_id, spk_t = exp.run(i)
-                        
+
                         for pop in pop2record:
 
                             spk_id_path = os.path.join(dirname, f"spk_id_pop_n{self.num_orn}_lvl{i}_it{j}_{pop}.npy")
@@ -88,7 +88,7 @@ class Experimenter:
                             stim_gen = stim
 
                         del stim, spk_id, spk_t, flat_spk_id, flat_spk_t
-                        
+
             case _: raise ValueError("invalid experiment selected, check json")
 
         return stim_path, data_log

@@ -19,7 +19,7 @@ class ExperimentStatic:
         self.rec_states = self.paras["rec_states"]
         self.spk_rec_steps = spk_rec_steps # ugly way to match the spike pulling rate to the model recording steps
         self.n_run = n_run
-        self.run_settings= dict()
+        self.run_settings = dict()
         self.debug = debugmode
 
         dir_name = f"run_{str(self.n_run)}"
