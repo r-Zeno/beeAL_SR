@@ -33,20 +33,20 @@ model = build_plan.build()
 
 ############## creating odors
 odors= []
-odor_stable_params = paras["odors_stable_params"]
 
 od1_m = 119
-od1_sd_b = 1
-od1 = gauss_odor(n_glo=paras["num_glo"], m = od1_m, sd_b= od1_sd_b, a_rate= 0.1, A= 1)
+od1_sd_b = 8
+od1 = gauss_odor(n_glo=mod_paras["num"]["glom"], m = od1_m, sd_b= od1_sd_b, a_rate= 0.025, A= 1)
 odors.append(np.copy(od1))
 
 od2_m = 121
-od2_sd_b = 1
-od2 = gauss_odor(n_glo=paras["num_glo"], m = od2_m, sd_b= od2_sd_b, a_rate= 0.1, A= 1)
+od2_sd_b = 8
+od2 = gauss_odor(n_glo=mod_paras["num"]["glom"], m = od2_m, sd_b= od2_sd_b, a_rate= 0.025, A= 1)
 odors.append(np.copy(od2))
 
+odors = [od1, od2]
 # defining Hill coefficient
-hill_exp= np.random.uniform(0.95, 1.05, paras["num_glo"])
+hill_exp= np.random.uniform(0.95, 1.05, mod_paras["num"]["glom"])
 np.save(os.path.join(folder,"_hill"), hill_exp)
 
 noise_lvls = [0.0, 1.0]
@@ -54,13 +54,8 @@ noisy_pops = ["orn", "pn", "ln"]
 
 pop_to_rec = ["pn"]
 
-spike_t = []
-spike_id = []
-if debug: print(spike_t)
-if debug: print(spike_id)
-
 base = np.power(10,0.25)
-c = 12
+c = 13
 on = 1e-7*np.power(base,c)
 off = 0.0
 odor_slot = 0 # more than one odor slot in ors so must specify
@@ -70,13 +65,24 @@ stim_duration = 3000
 t_odor_on = baseline
 sim_time = t_odor_on + stim_duration
 
+sigma = 50
+dt = 1
+tleft = 0 - 3 * sigma
+tright = sim_time + 3 * sigma
+n = int((tright - tleft) / dt)
+time_vector = np.arange(n) * dt + tleft
+allID = list(range(mod_paras["num"]["glom"]*mod_paras["num"]["pn"]))
+
 ors_pop = model.neuron_populations["or"]
 
 start = time.time()
+i = 0
 for odor in odors:
     i += 1
 
     int_t = 0
+    spike_t = []
+    spike_id = []
     odor_applied = False
     odor_removed = False
 
@@ -102,7 +108,7 @@ for odor in odors:
             odor_applied = True
 
         model.step_time()
-        int_t =+ 1
+        int_t += 1
 
         if int_t%1000 == 0:
             model.pull_recording_buffers_from_device()
@@ -110,38 +116,47 @@ for odor in odors:
             pop_to_pull = model.neuron_populations["pn"]
             if (pop_to_pull.spike_recording_data[0][0].size > 0):
                 spike_t.append(pop_to_pull.spike_recording_data[0][0])
-                spike_id.append(pop_to_pull.spike_recording_data[0][0])
-                if debug: print(f"spiked fetched at time {model.t}")
+                spike_id.append(pop_to_pull.spike_recording_data[0][1])
+                if debug: print(f"spikes fetched at time {model.t}")
             else:
                 if debug: print(f"no spikes at time {model.t}")
 
     model.unload()
     os.makedirs(res_folder)
+    spike_t = np.hstack(spike_t)
+    spike_id = np.hstack(spike_id)
     np.save(os.path.join(res_folder, "clean_pn_spike_t.npy"), spike_t)
     np.save(os.path.join(res_folder, "clean_pn_spike_id.npy"), spike_id)
-
-    sigma = 20
-    dt = 1
-    tleft = 0 - 3 * sigma
-    tright = sim_time + 3 * sigma
-    n = int((tright - tleft) / dt)
-    time_vector = np.arange(n) * dt + tleft
-    allID = list(range(mod_paras["num"]["glom"]*mod_paras["num"]["pn"]))
 
     sdfs = make_sdf(spike_t, spike_id, allID, 0, sim_time, dt, sigma)
     np.save(os.path.join(res_folder, "sdf_clean.npy"),sdfs)
 
+plt.figure(figsize=(10, 5))
+# Transpose sdfs with .T so neurons are on the Y-axis and time is on the X-axis
+plt.imshow(sdfs.T, aspect='auto', cmap='hot', 
+        extent=[tleft, tright, len(allID)-0.5, -0.5], origin='upper')
+plt.colorbar(label='Firing Rate')
+plt.xlim(t_odor_on, sim_time)
+plt.xlabel('Time (ms)')
+plt.ylabel('Neuron ID')
+plt.title('Population Spike Density')
+plt.show()
+
+if debug: print("finished first simulation, starting second")
+
+i = 0
 for odor in odors:
     i += 1
-
+    spike_t = []
+    spike_id = []
     int_t = 0
     odor_applied = False
     odor_removed = False
 
     model.load(num_recording_timesteps=1000)
     
-    corr_noise_lvl = noise_lvls[0]/np.sqrt(model.dt)
-    print(f"applying noise lvl {noise_lvls[0]} (corrected: {corr_noise_lvl})")
+    corr_noise_lvl = noise_lvls[1]/np.sqrt(model.dt)
+    print(f"applying noise lvl {noise_lvls[1]} (corrected: {corr_noise_lvl})")
 
     for pop in noisy_pops:
         popobj = model.neuron_populations.get(pop)
@@ -160,7 +175,7 @@ for odor in odors:
             odor_applied = True
 
         model.step_time()
-        int_t =+ 1
+        int_t += 1
 
         if int_t%1000 == 0:
             model.pull_recording_buffers_from_device()
@@ -168,31 +183,27 @@ for odor in odors:
             pop_to_pull = model.neuron_populations["pn"]
             if (pop_to_pull.spike_recording_data[0][0].size > 0):
                 spike_t.append(pop_to_pull.spike_recording_data[0][0])
-                spike_id.append(pop_to_pull.spike_recording_data[0][0])
-                if debug: print(f"spiked fetched at time {model.t}")
+                spike_id.append(pop_to_pull.spike_recording_data[0][1])
+                if debug: print(f"spikes fetched at time {model.t}")
             else:
                 if debug: print(f"no spikes at time {model.t}")
 
     model.unload()
-    os.makedirs(res_folder)
+    os.makedirs(res_folder, exist_ok=True)
+    spike_t = np.hstack(spike_t)
+    spike_id = np.hstack(spike_id)
     np.save(os.path.join(res_folder, "noisy_pn_spike_t.npy"), spike_t)
     np.save(os.path.join(res_folder, "noisy_pn_spike_id.npy"), spike_id)
-
-    sigma = 20
-    dt = 1
-    tleft = 0 - 3 * sigma
-    tright = sim_time + 3 * sigma
-    n = int((tright - tleft) / dt)
-    time_vector = np.arange(n) * dt + tleft
-    allID = list(range(mod_paras["num"]["glom"]*mod_paras["num"]["pn"]))
 
     sdfs = make_sdf(spike_t, spike_id, allID, 0, sim_time, dt, sigma)
     np.save(os.path.join(res_folder, "sdf_noisy.npy"),sdfs)
 
+if debug: print({dirname})
+
 plt.figure(figsize=(10, 5))
 # Transpose sdfs with .T so neurons are on the Y-axis and time is on the X-axis
-plt.imshow(sdfs.T, aspect='auto', cmap='viridis', 
-        extent=[tleft, tright, len(allID)-0.5, -0.5], origin='upper')
+plt.imshow(sdfs.T, aspect='auto', cmap='hot', 
+    extent=[tleft, tright, len(allID)-0.5, -0.5], origin='upper')
 plt.colorbar(label='Firing Rate')
 plt.xlim(t_odor_on, sim_time)
 plt.xlabel('Time (ms)')

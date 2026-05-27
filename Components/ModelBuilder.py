@@ -239,7 +239,7 @@ class ModelBuilder:
             )
         else:
             self.orn_pn_conn = init_sparse_connectivity(
-                self.orns_pns_connect_det,
+                self.orns_pns_connect_rndm,
                 params={
                     "n_orn": self.n_orn,
                     "n_trg": self.n_pn,
