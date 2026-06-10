@@ -9,14 +9,19 @@ sim_dir_name = "sim_20260527_230853"
 current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sim_path = os.path.join(current_dir, "simulations", sim_dir_name)
 
-res_od1_clean = np.load(os.path.join(sim_path, "odor_1", "sdf_clean.npy"))
-res_od2_clean = np.load(os.path.join(sim_path, "odor_2", "sdf_clean.npy"))
-res_od1_noisy = np.load(os.path.join(sim_path, "odor_1", "sdf_noisy.npy"))
-res_od2_noisy = np.load(os.path.join(sim_path, "odor_2", "sdf_noisy.npy"))
+dt = 1
+sigma = 50
+pad_idx = int(3 * sigma / dt)
+sim_pts = 4000
+# clear the padding of the sdf function before anything else
+res_od1_clean = np.load(os.path.join(sim_path, "odor_1", "sdf_clean.npy"))[pad_idx : pad_idx + sim_pts-500, :]
+res_od2_clean = np.load(os.path.join(sim_path, "odor_2", "sdf_clean.npy"))[pad_idx : pad_idx + sim_pts-500, :]
+res_od1_noisy = np.load(os.path.join(sim_path, "odor_1", "sdf_noisy.npy"))[pad_idx : pad_idx + sim_pts-500, :]
+res_od2_noisy = np.load(os.path.join(sim_path, "odor_2", "sdf_noisy.npy"))[pad_idx : pad_idx + sim_pts-500, :]
 
 dt = 1
 baseline = 1000
-settle_time = 250
+settle_time = 0
 start_idx = int(settle_time/dt)
 end_idx = int(baseline/dt)
 
@@ -61,8 +66,11 @@ tot_dist_noisy = np.sum(dist_noisy)
 tot_distcos_clean = np.sum(distcos_clean)
 tot_distcos_noisy = np.sum(distcos_noisy)
 
-plt.plot(dist_clean)
-plt.plot(dist_noisy)
+plt.plot(dist_clean, label = "noiseless")
+plt.plot(dist_noisy, label = "noisy")
+plt.xlabel("time (ms)")
+plt.ylabel("L2 distance")
+plt.legend(loc = "upper left")
 plt.show()
 
 print(f"euclidean distance. clean: {tot_dist_clean}, noisy: {tot_dist_noisy}")
@@ -83,8 +91,8 @@ def plot_trajectory(ax, traj, color, linestyle, label):
     ax.scatter(traj[0, 0], traj[0, 1], traj[0, 2], 
                color=color, marker='o', s=20)
     
-    ax.scatter(traj[stim_idx, 0], traj[stim_idx, 1], traj[stim_idx, 2], 
-               color=color, marker='*', s=150, edgecolors='black')
+    #ax.scatter(traj[stim_idx, 0], traj[stim_idx, 1], traj[stim_idx, 2], 
+               #color=color, marker='*', s=150, edgecolors='black')
 
 ax1 = fig.add_subplot(131, projection='3d')
 plot_trajectory(ax1, traj_od1clean, color='blue', linestyle='-', label='odor 1 (noiseless)')
