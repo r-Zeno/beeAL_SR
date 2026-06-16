@@ -19,11 +19,14 @@ class ModelBuilder:
     - dt: default to 0.1 ms.
     """
     def __init__(self, paras:dict, exp_type, sim_time, target_pop, debugmode:bool, dt=0.1):
-
+        
+        nocuda = False
         try:
             os.environ['CUDA_PATH'] = '/usr/local/cuda'
             pygenn.genn_model.backend_modules["CUDA"] = pygenn.cuda_backend # must manually set, otherwise on linux wont work
-        except: print("Warning: could not set CUDA backends")
+        except: 
+            print("Warning: could not set CUDA backends")
+            nocuda = True
 
         self.exp_type = exp_type # because different experiments need different model components
         self.target_pop = target_pop
@@ -35,7 +38,9 @@ class ModelBuilder:
         self.sim_time_s = sim_time
         self.debugmode = debugmode
 
-        self.model = GeNNModel("float", "beeAL", backend="CUDA") # for linux add backend="CUDA"
+        if not nocuda:
+            self.model = GeNNModel("float", "beeAL", backend="CUDA") # for linux add backend="CUDA"
+        else: self.model = GeNNModel("float", "beeAL")
         self.model.dt = dt
 
         self.n_glom = int(self.paras["num"]["glom"])

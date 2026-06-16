@@ -182,7 +182,7 @@
 
             "noise": {
                 "noiselvl_min": 0.0,
-                "noiselvl_max": 2.0,
+                "noiselvl_max": 3.0,
                 "noiselvl_steps": 10,
                 "noisy_pop": ["orn", "ln", "pn"]
             },
@@ -222,7 +222,7 @@
             "settle_time_secs": 0.2,
 
             "mi_discrete": false,
-            "bin_size_ms": 100 
+            "bin_size_ms": 100
 
         }
 
