@@ -490,7 +490,7 @@ class ModelBuilder:
                 ],
                 # in the Fantoni version there is also an eq for g_adapt and g_leak that are changed depending on Temperature. To add if temperature is to be added
                 sim_code = """
-                V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn + noise_A*gennrand_normal() + I_background)*dt/C_mem;
+                V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn + I_background)*dt/C_mem + (noise_A/C_mem)*sqrt(dt)*gennrand_normal();
                 a += -a*dt/tau_adapt;
                 """,
                 threshold_condition_code = """
@@ -519,7 +519,7 @@ class ModelBuilder:
                 }
                 else
                 {
-                    V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn + noise_A*gennrand_normal())*dt/C_mem;
+                    V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn)*dt/C_mem + (noise_A/C_mem)*sqrt(dt)*gennrand_normal();
                 }
 
                 a += -a*dt/tau_adapt;
@@ -545,7 +545,7 @@ class ModelBuilder:
                 ],
                 # in the Fantoni version there is also an eq for g_adapt and g_leak that are changed depending on Temperature. To add if temperature is to be added
                 sim_code = """
-                V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn + noise_A*gennrand_normal())*dt/C_mem;
+                V += (-g_leak*(V-V_leak) - g_adapt*a*(V-V_adapt) + r_scale*Isyn)*dt/C_mem + (noise_A/C_mem)*sqrt(dt)*gennrand_normal();
                 a += -a*dt/tau_adapt;
                 """,
                 threshold_condition_code = """
