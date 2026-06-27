@@ -182,8 +182,8 @@
 
             "noise": {
                 "noiselvl_min": 0.0,
-                "noiselvl_max": 3.0,
-                "noiselvl_steps": 10,
+                "noiselvl_max": 2.0,
+                "noiselvl_steps": 5,
                 "noisy_pop": ["orn", "ln", "pn"]
             },
 

@@ -14,8 +14,8 @@ class ExperimentDynamicSingle:
         noise_max = paras["noise"]["noiselvl_max"]
         steps = paras["noise"]["noiselvl_steps"]
         self.noisy_pop = paras["noise"]["noisy_pop"]
-        # normalized by integration timestep
-        self.noise_lvls = np.divide(np.linspace(noise_min, noise_max, steps), np.sqrt(model.dt))
+        # normalization by sqrt(dt) happens in the integration code
+        self.noise_lvls = np.linspace(noise_min, noise_max, steps)
         self.model = model
         self.num_orn = num_orn
         self.num_pn = num_pn
