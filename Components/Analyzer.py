@@ -5,6 +5,14 @@ from joblib import Parallel, delayed
 from scipy import stats as st
 from helpers import data_log_compile
 from mi_analysis_dynamic_single import mi_analysis_dynamic_single
+from AnalysisStaticSingle import (analysis_trial_static_single,
+                                    aggregate_static_single,
+                                    save_results,
+                                    data_log_compile_static,
+                                    plot_debug_trajectories)
+from AnalysisDeltaR import (compute_delta_r,
+                            save_delta_results,
+                            plot_delta_r)
 
 class Analyzer:
 
@@ -14,7 +22,12 @@ class Analyzer:
         self.paras_model = paras_model
         self.exp_type = which_exp
         self.stim_path = stim_path
-        self.data = data_log_compile(data_paths)
+        self.data_log_raw = data_paths
+        # different helpers are needed since differnt exps have different inputs
+        if which_exp == "static_single":
+            self.data = data_log_compile_static(data_paths)
+        else:
+            self.data = data_log_compile(data_paths)
         self.folder = folder
         self.pop2analyze = self.paras_an["pop_to_analyze"]
         self.pop_numbers = pop_numbers
@@ -26,8 +39,84 @@ class Analyzer:
             
             case "static_single":
 
-                # to move everything here
-                raise ValueError("not ready yet")
+                if self.debugmode:
+                    start_an = time.perf_counter()
+                    print("Starting static analysis...")
+
+                protocol = self.paras_an["protocol_ref"] if "protocol_ref" in self.paras_an \
+                    else self.paras_an["protocol"]
+
+                res_paths = []
+                for num in sorted(self.data.keys()):
+
+                    sweep_dir = os.path.join(self.folder, f"pop_n{num}")
+                    noise_lvls = np.load(os.path.join(sweep_dir, "noise_levels.npy"))
+
+                    # one task per trial, mirroring the DynamicSingle pattern.
+                    # Each worker writes its SDF to disk and returns only the
+                    # path, so joblib is not moving tens of MB per trial
+                    # through IPC.
+                    tasks = []
+                    for lvl in sorted(self.data[num].keys()):
+                        for od in sorted(self.data[num][lvl].keys()):
+                            for it in sorted(self.data[num][lvl][od].keys()):
+                                tasks.append(
+                                    delayed(analysis_trial_static_single)(
+                                        lvl,
+                                        float(noise_lvls[lvl]),
+                                        od,
+                                        it,
+                                        self.data[num][lvl][od][it],
+                                        self.paras_an,
+                                        self.paras_model,
+                                        protocol,
+                                        sweep_dir,
+                                        self.debugmode
+                                    )
+                                )
+
+                    results = Parallel(n_jobs=-1, verbose=5, max_nbytes=None)(tasks)
+
+                    # everything needing more than one trial happens serially:
+                    # trial-averaged trajectories and the PCA basis
+                    out = aggregate_static_single(
+                        results,
+                        sweep_dir,
+                        self.paras_an,
+                        self.paras_model,
+                        protocol,
+                        noise_lvls,
+                        keep_trial_sdf=self.paras_an.get("keep_trial_sdf", False),
+                        debugmode=self.debugmode
+                    )
+                    res_paths.extend(save_results(out, sweep_dir, prefix=f"static_pop{num}"))
+
+                    if self.paras_an.get("debug_plots", False):
+                        plot_debug_trajectories(out, sweep_dir)
+
+                    # ---- Delta<r> per glomerulus. Independent of the PCA:
+                    # rates come from spike counts, not from the SDF.
+                    delta = compute_delta_r(
+                        self.data[num],
+                        self.paras_an,
+                        self.paras_model,
+                        protocol,
+                        noise_lvls,
+                        self.debugmode
+                    )
+                    res_paths.extend(save_delta_results(
+                        delta, sweep_dir, prefix=f"static_pop{num}"))
+
+                    if self.paras_an.get("delta_plots", False):
+                        plot_delta_r(
+                            delta, sweep_dir,
+                            stem=self.paras_an.get("delta_stem_plot", True))
+
+                if self.debugmode:
+                    end_an = time.perf_counter()
+                    print(f"static analysis ended, it took {end_an-start_an:4f} secs")
+
+                return res_paths
             
             case "DynamicSingle":
 

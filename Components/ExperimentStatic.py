@@ -1,329 +1,221 @@
 import numpy as np
-from pygenn.genn_model import GeNNModel
 import time
 import os
 import json
-from helpers import gauss_odor, set_odor_simple
+import hashlib
+from helpers import set_odor_simple
+
 
 class ExperimentStatic:
     """
-    Only runs the predifined experiment using the model defined by the simulator, then saves data after each run.
-    - model: the model created with ModelBuilder
-    - experiment_parameter: dictionary containing odor/exp parameters, loaded by the simulator from json
+    Runs the presentation of one odor at a given level. called by experimenter the necessary number of times, with the correct inputs
     """
-    def __init__(self, model, experiment_parameters: dict, sim_path, n_run:int, noise_lvl:float, spk_rec_steps:int, debugmode: bool):
 
-        self.noise_lvl = noise_lvl
+    def __init__(self, model, experiment_parameters: dict, trial_folder: str,
+                 noise_lvl: float, n_run: int, n_odor: int, n_trial: int,
+                 odor, hill_exp, start_step: int, debugmode: bool):
+
         self.model = model
         self.paras = experiment_parameters
-        self.rec_states = self.paras["rec_states"]
-        self.spk_rec_steps = spk_rec_steps # ugly way to match the spike pulling rate to the model recording steps
-        self.n_run = n_run
-        self.run_settings = dict()
+        self.folder = trial_folder
+        self.noise_lvl = float(noise_lvl)
+        self.n_run = int(n_run)
+        self.n_odor = int(n_odor)
+        self.n_trial = int(n_trial)
+        self.odor = odor
+        self.hill_exp = hill_exp
+        self.start_step = int(start_step)
         self.debug = debugmode
 
-        dir_name = f"run_{str(self.n_run)}"
-        self.folder = os.path.join(sim_path, dir_name)
-        os.makedirs(self.folder)
+        self.rec_states = self.paras["rec_states"]
+        self.spk_rec_steps = int(self.paras["spk_rec_steps"])
+        self.pop_to_rec = self.paras["pop_to_rec"]
+        self.what_to_rec = self.paras["what_to_rec"]
+        self.state_rec_steps = int(self.paras.get("state_rec_steps", 10))
+        self.odor_slot = int(self.paras["stimulus"].get("odor_slot", 0))
 
-    def _odor_maker(self):
-        
-        self.odors= []
-        odor_stable_params = self.paras["odors_stable_params"]
-        
-        od1_m = self.paras["odor1_midpoint"]
-        od1_sd_b = self.paras["odor1_sd"]
-        od1 = gauss_odor(n_glo=self.paras["num_glo"], m = od1_m, sd_b= od1_sd_b, a_rate= odor_stable_params["a_rate"], A= odor_stable_params["A"])
-        self.odors.append(np.copy(od1))
+        self.run_settings = dict()
+        self.t_start_ms = self.start_step * self.model.dt
 
-        od2_m = self.paras["odor2_midpoint"]
-        od2_sd_b = self.paras["odor2_sd"]
-        od2 = gauss_odor(n_glo=self.paras["num_glo"], m = od2_m, sd_b= od2_sd_b, a_rate= odor_stable_params["a_rate"], A= odor_stable_params["A"])
-        self.odors.append(np.copy(od2))
+        os.makedirs(self.folder, exist_ok=True)
 
-        # defining Hill coefficient
-        self.hill_exp= np.random.uniform(0.95, 1.05, self.paras["num_glo"])
-        np.save(os.path.join(self.folder,"_hill"), self.hill_exp)
+    @staticmethod
+    def timeline(paras, dt):
+        """
+        this creates a timesteps grid on which spikes are assigned. using model.t and the reported timing instead would
+        work allthesame, and be easier, so never do this again.
+        Initially this was thought to be necessary since the experiments where to be run on a never restarting model instance, so model.t would accumulate float errors.
+        But model.t is restarted at every reloading of the network, so completely useless
+        """
+        p = paras["protocol"]
 
-    def _noise_lvl_injecter(self):
+        def steps(ms):
+            n = float(ms) / dt
+            if abs(n - round(n)) > 1e-9:
+                raise ValueError(f"{ms} ms is not an integer number of dt={dt} ms steps")
+            return int(round(n))
 
-        corr_noise_lvl = self.noise_lvl/np.sqrt(self.model.dt)
-        print(f"Run {self.n_run}, applying noise lvl {self.noise_lvl} (corrected: {corr_noise_lvl})")
+        n_settle = steps(p.get("settle_ms", 0))
+        n_base = steps(p["baseline_ms"])
+        n_stim = steps(p["stim_ms"])
+        n_relax = steps(p["relaxation_ms"])
 
-        for pop in self.paras["noisy_pop"]:
-            popobj = self.model.neuron_populations.get(pop)
-            if self.debug: print(popobj)
-            if popobj is not None:
-                if self.debug: print(f"injecting population{popobj}")
-                popobj.set_dynamic_param_value("noise_A", corr_noise_lvl)
+        t = {
+            "settle_end": n_settle,
+            "odor_on": n_settle + n_base,
+            "odor_off": n_settle + n_base + n_stim,
+        }
+        t["trial_steps"] = t["odor_off"] + n_relax
+
+        # check if spike time pulling is a multiple of the total time
+        spk = int(paras["spk_rec_steps"])
+        if t["trial_steps"] % spk != 0:
+            raise ValueError(
+                f"presentation is {t['trial_steps']} timesteps, not a multiple "
+                f"of spk_rec_steps={spk}"
+            )
+        return t
+
+    def _concentration(self):
+        s = self.paras["stimulus"]
+        base = np.power(10.0, float(s["base_exp"]))
+        return float(s["scale"]) * np.power(base, float(s["c"])), 0.0
 
     def _rec_var_init(self):
-
-        self.pop_to_rec = self.paras["pop_to_rec"]
-
-        spike_t = dict()
-        spike_id = dict()
-        for pop in self.pop_to_rec:
-            spike_t[pop] = []
-            spike_id[pop] = []
-
-        if self.debug: print(spike_t)
-        if self.debug: print(spike_id)
-
-        # rec var state from neurons
-        self.what_to_rec = self.paras["what_to_rec"]
-        self.vars_rec = dict()
-        for pop, var in self.what_to_rec:
-            self.vars_rec[f"{pop}_{var}"] = []
-
-        if self.debug: print(self.vars_rec)
+        spike_t = {pop: [] for pop in self.pop_to_rec}
+        spike_id = {pop: [] for pop in self.pop_to_rec}
+        self.vars_rec = {f"{pop}_{var}": [] for pop, var in self.what_to_rec}
         return spike_t, spike_id
 
-    def _exp_separate_od(self):
+    def _var_views(self):
+        return {f"{pop}_{var}": self.model.neuron_populations[pop].vars[var].view
+                for pop, var in self.what_to_rec}
 
-        base = np.power(10,0.25)
-        c = 12
-        on = 1e-7*np.power(base,c)
-        off = 0.0
-        odor_slot = 0 # more than one odor slot in ors so must specify
+    ############### Pulling spikes
 
-        baseline = 1000
-        t_relaxation = 1000
-        stim_duration = 3000
-        t_odor_on = baseline
-        t_odor_off = t_odor_on + stim_duration
-        sim_time = t_odor_off + t_relaxation
+    def _pull(self, int_t, spike_t, spike_id, var_view):
+        if self.rec_states and self.what_to_rec and int_t % self.state_rec_steps == 0:
+            for pop_name, var_name in self.what_to_rec:
+                key = f"{pop_name}_{var_name}"
+                self.model.neuron_populations[pop_name].vars[var_name].pull_from_device()
+                self.vars_rec[key].append(np.copy(var_view.get(key)))
 
-        state_rec_steps = 10 # pull state vars every 10 timesteps (curr every 1 ms)
-
-        var_view = {}
-        for pop, var in self.what_to_rec: # getting var directly (more efficient(?))
-            var_view[f"{pop}_{var}"] = self.model.neuron_populations[pop].vars[var].view
-
-        ors_population = self.model.neuron_populations["or"]
-
-        if self.debug: print("starting sim...")
-        start = time.time()
-        i = 0
-
-        for odor in self.odors:
-            i += 1
-
-            # init exp params
-            int_t = 0
-            odor_applied = False
-            odor_removed = False
-            
-            # to load model in a fresh state
-            self.model.load(num_recording_timesteps = int(self.paras["spk_rec_steps"]))
-            self._noise_lvl_injecter()
-
-            # init spiking data
-            spike_t = {}
-            spike_id = {}
+        if int_t % self.spk_rec_steps == 0:
+            self.model.pull_recording_buffers_from_device()
             for pop in self.pop_to_rec:
-                spike_t[pop] = []
-                spike_id[pop] = []
-            self.vars_rec = {}
-            for pop, var in self.what_to_rec:
-                self.vars_rec[f"{pop}_{var}"] = []
+                data = self.model.neuron_populations[pop].spike_recording_data[0]
+                if data[0].size > 0:
+                    spike_t[pop].append(data[0])
+                    spike_id[pop].append(data[1])
 
-            f_name = f"odor_{str(i)}"
-            exp_s_folder = os.path.join(self.folder, f_name)
+    def run(self):
+        """
+        Steps the model through one presentation and saves the spikes.
+        Returns (log_entries, end_step).
+        """
+        t = self.timeline(self.paras, self.model.dt)
+        on, off = self._concentration()
 
-            while self.model.t < sim_time:
+        model_step = getattr(self.model, "timestep", None)
+        if model_step is not None and int(model_step) != self.start_step:
+            print(f"WARNING: model.timestep={int(model_step)} but segment expects "
+                  f"start_step={self.start_step}; spike times may be misaligned")
 
-                if not odor_applied and self.model.t >= t_odor_on:
-                    if self.debug: print(f"Time {self.model.t}, applying odor")
-                    set_odor_simple(ors_population, odor_slot, odor, on, self.hill_exp)
-                    odor_applied = True
-
-                if odor_applied and not odor_removed and self.model.t >= t_odor_off:
-                    if self.debug: print(f"Time {self.model.t}, shutting off odor")
-                    set_odor_simple(ors_population, odor_slot, odor, off, self.hill_exp)
-                    odor_removed = True
-
-                self.model.step_time()
-                int_t += 1
-
-                # pulling var states
-                if int_t%state_rec_steps == 0:
-
-                    for pop_name, var_name in self.what_to_rec:
-                        view_key = f"{pop_name}_{var_name}"
-
-                        var_obj = self.model.neuron_populations[pop_name].vars[var_name]
-                        var_obj.pull_from_device()
-                        current_var_view = var_view.get(view_key)
-
-                        current_val = np.copy(current_var_view)
-                        self.vars_rec[view_key].append(current_val)
-
-                # pulling spikes
-                if int_t%self.spk_rec_steps == 0: # every 1000 timesteps (int_t%1000 == 0 checks if int_t/1000 is equal to 0)
-                    self.model.pull_recording_buffers_from_device()
-                    
-                    for pop in self.pop_to_rec:
-                        pop_to_pull = self.model.neuron_populations[pop]
-
-                        if (pop_to_pull.spike_recording_data[0][0].size > 0):
-                            spike_t[pop].append(pop_to_pull.spike_recording_data[0][0])
-                            spike_id[pop].append(pop_to_pull.spike_recording_data[0][1])
-                            if self.debug: print(f"spikes fetched for time {self.model.t} from {pop}")
-                        else: 
-                            if self.debug: print(f"no spikes in t {self.model.t} in {pop}")
-
-            self.model.unload() # clearing model before starting 2nd run
-
-            self._data_saver(spike_t, spike_id, exp_s_folder) # saving data dynamically
-
-        end = time.time()
-        timetaken = round(end-start, 2)
-        if self.debug: print(f"sim ended. it took {timetaken} s.")
-
-    def _exp_consecutive_od(self, spike_t, spike_id):
-
-        exp_folder = self.folder
-        base = np.power(10,0.25)
-        c = 12
-        on = 1e-7*np.power(base,c)
-        off = 0.0
-        odor_slot = 0
-
-        t_odor1_on = 1000
-        t_odor1_off = t_odor1_on + 3000
-        t_pause_end = t_odor1_off + 1000
-        t_odor2_on = t_pause_end
-        t_odor2_off = t_odor2_on + 3000
-        sim_time = 8000 # ms
-
-        odor1_applied = False
-        odor1_removed = False
-        odor2_applied = False
-        odor2_removed = False
-        
-        self.model.load(num_recording_timesteps = int(self.paras["spk_rec_steps"]))
-        self._noise_lvl_injecter()
-
-        var_view = {}
-        for pop, var in self.what_to_rec: # getting var directly (more efficient(?))
-            var_view[f"{pop}_{var}"] = self.model.neuron_populations[pop].vars[var].view
-
-        state_rec_steps = 10 # pull state vars every 10 timesteps (curr every 1 ms)
-
+        spike_t, spike_id = self._rec_var_init()
+        var_view = self._var_views()
         ors_population = self.model.neuron_populations["or"]
 
-        # making sure odor is off
-        if self.debug: print(f"Initial state: applying 0.0 concentration to type {odor_slot}")
-        set_odor_simple(ors_population, odor_slot, self.odors[0], off, self.hill_exp)
+        # The state restore has already put the receptors back to their initial
+        # (odor-off) values, so no explicit off-write is needed here.
+        self.run_settings.update({
+            "noise_lvl": self.noise_lvl,
+            "level": self.n_run,
+            "odor": self.n_odor,
+            "trial": self.n_trial,
+            "start_step": self.start_step,
+            "t_start_ms": float(self.t_start_ms),
+            "timeline_steps": {k: int(v) for k, v in t.items()},
+            "dt": float(self.model.dt),
+        })
 
-        int_t = 0 # init internal counter
-        if self.debug: print("starting sim...")
         start = time.time()
-        while self.model.t < sim_time:
+        for step in range(t["trial_steps"]):
 
-            if not odor1_applied and self.model.t >= t_odor1_on:
-                if self.debug: print(f"Time {self.model.t}, applying odor 1")
-                set_odor_simple(ors_population, odor_slot, self.odors[0], on, self.hill_exp)
-                odor1_applied = True
+            if step == t["odor_on"]:
+                if self.debug:
+                    print(f"  step {step}: odor {self.n_odor} on")
+                set_odor_simple(ors_population, self.odor_slot, self.odor, on, self.hill_exp)
 
-            if odor1_applied and not odor1_removed and self.model.t >= t_odor1_off:
-                if self.debug: print(f"Time {self.model.t}, shutting off odor 1")
-                set_odor_simple(ors_population, odor_slot, self.odors[0], off, self.hill_exp)
-                odor1_removed = True
-
-            if odor1_removed and not odor2_applied and self.model.t >= t_odor2_on:
-                if self.debug: print(f"Time {self.model.t}, applying odor 2")
-                set_odor_simple(ors_population, odor_slot, self.odors[1], on, self.hill_exp)
-                odor2_applied = True
-
-            if odor2_applied and not odor2_removed and self.model.t >= t_odor2_off:
-                if self.debug: print(f"Time {self.model.t}, shutting off odor 2")
-                set_odor_simple(ors_population, odor_slot, self.odors[1], off, self.hill_exp)
-                odor2_removed = True
+            elif step == t["odor_off"]:
+                if self.debug:
+                    print(f"  step {step}: odor {self.n_odor} off")
+                set_odor_simple(ors_population, self.odor_slot, self.odor, off, self.hill_exp)
 
             self.model.step_time()
-            int_t += 1
+            self._pull(step + 1, spike_t, spike_id, var_view)
 
-            # pulling var states
-            if int_t%state_rec_steps == 0:
+        if self.debug:
+            print(f"  presentation ran in {round(time.time() - start, 2)} s")
 
-                for pop_name, var_name in self.what_to_rec:
-                    view_key = f"{pop_name}_{var_name}"
+        log = self._data_saver(spike_t, spike_id)
+        return log, self.start_step + t["trial_steps"]
 
-                    var_obj = self.model.neuron_populations[pop_name].vars[var_name]
-                    var_obj.pull_from_device()
-                    current_var_view = var_view.get(view_key)
+        ################ Saver
 
-                    current_val = np.copy(current_var_view)
-                    self.vars_rec[view_key].append(current_val)
-
-            # pulling spikes
-            if int_t%self.spk_rec_steps == 0: # every 1000 timesteps (int_t%1000 == 0 checks if int_t/1000 is equal to 0)
-                self.model.pull_recording_buffers_from_device()
-                
-                for pop in self.pop_to_rec:
-                    pop_to_pull = self.model.neuron_populations[pop]
-
-                    if (pop_to_pull.spike_recording_data[0][0].size > 0):
-                        spike_t[pop].append(pop_to_pull.spike_recording_data[0][0])
-                        spike_id[pop].append(pop_to_pull.spike_recording_data[0][1])
-                        if self.debug: print(f"spikes fetched for time {self.model.t} from {pop}")
-                    else: 
-                        if self.debug: print(f"no spikes in t {self.model.t} in {pop}")
-
-        self.model.unload()
-                    
-        end = time.time()
-
-        timetaken = round(end-start, 2)
-        if self.debug: print(f"sim ended. it took {timetaken} s.")
-
-        return spike_t, spike_id, exp_folder
-
-    def _data_saver(self, spike_t, spike_id, exp_folder):
-        
-        os.makedirs(exp_folder, exist_ok=True)
-        for pop in self.pop_to_rec:
-            if spike_t[pop] is not None:
-                spike_t[pop] = np.hstack(spike_t[pop])
-                spike_id[pop] = np.hstack(spike_id[pop])
+    def _data_saver(self, spike_t, spike_id):
+        os.makedirs(self.folder, exist_ok=True)
+        log = []
+        dt = float(self.model.dt)
+        max_resid = 0.0
 
         for pop in self.pop_to_rec:
-            np.save(os.path.join(exp_folder, f"{pop}_spike_t.npy"), spike_t[pop])
-            np.save(os.path.join(exp_folder, f"{pop}_spike_id.npy"), spike_id[pop])
+            if len(spike_t[pop]) > 0:
+                # this is a somewhat contrived and unnecessary solution to assign spikes at precise timings in a grid 
+                rel = (np.hstack(spike_t[pop]).astype(np.float64)
+                       - self.t_start_ms) / dt
+                steps = np.rint(rel).astype(np.int64)
+                if steps.size:
+                    max_resid = max(max_resid, float(np.abs(rel - steps).max()))
+                flat_t = steps.astype(np.float64) * dt
+                flat_id = np.hstack(spike_id[pop])
+            else:
+                steps = np.array([], dtype=np.int64)
+                flat_t = np.array([], dtype=np.float64)
+                flat_id = np.array([], dtype=int)
+
+            t_path = os.path.join(self.folder, f"{pop}_spike_t.npy")
+            id_path = os.path.join(self.folder, f"{pop}_spike_id.npy")
+            np.save(t_path, flat_t)
+            np.save(id_path, flat_id)
+
+            log.append({
+                "level": self.n_run,
+                "noise_lvl": self.noise_lvl,
+                "odor": self.n_odor,
+                "trial": self.n_trial,
+                "pop": pop,
+                "n_spikes": int(flat_t.size),
+                # to check if runs are bit-bit identical
+                "fingerprint": hashlib.md5(
+                    steps.tobytes() + np.asarray(flat_id, dtype=np.int64).tobytes()
+                ).hexdigest()[:16],
+                "spk_t_path": t_path,
+                "spk_id_path": id_path,
+            })
 
         if self.rec_states:
-            for key, segments_list in self.vars_rec.items():
-                if segments_list:
-                    self.vars_rec[key] = np.vstack(segments_list)
-                else:
-                    self.vars_rec[key] = np.array([])
+            for key, segs in self.vars_rec.items():
+                if segs:
+                    np.save(os.path.join(self.folder, f"{key}_states.npy"), np.vstack(segs))
 
-            for pop_var2 in self.vars_rec:
-                np.save(os.path.join(exp_folder, f"{pop_var2}_states.npy"), self.vars_rec[pop_var2])
-        else: 
-            if self.debug: print("Warning: variable states (V) are not being recorded for this run!")
+        # check of the grid alignment precision, this is an ai suggested check that is completely useless, but does no harm
+        self.run_settings["max_grid_residual_steps"] = max_resid
+        if max_resid > 0.25:
+            print(f"WARNING: spike times where {max_resid:.3f} timesteps off "
+                  f"the dt grid before snapping. Check that ModelBuilder passes "
+                  f"time_precision='double'.")
 
-        # saving the run's details into a json
-        self.run_settings["noise_lvl"] = self.noise_lvl
-        with open(os.path.join(exp_folder, f"run_{self.n_run}_settings.json"), 'w') as fp:
-            json.dump(self.run_settings, fp)
+        with open(os.path.join(self.folder, "run_settings.json"), "w") as fp:
+            json.dump(self.run_settings, fp, indent=2)
 
-    def run(self, exp_1:bool, exp_2:bool):
-        """
-        starts the experiment
-        """
-        self._odor_maker()
-        spike_t, spike_id = self._rec_var_init()
-
-        if exp_1:
-            spike_t_exp, spike_id_exp, exp_folder = self._exp_consecutive_od(spike_t, spike_id)
-            self._data_saver(spike_t_exp, spike_id_exp, exp_folder)
-        elif exp_2:
-            self._exp_separate_od()
-        else: raise ValueError("Must choose an experiment in the parameters file!")
-
-        if self.debug: print(f"exp run, saved in '{self.folder}'")
-
-        return self.folder
+        return log

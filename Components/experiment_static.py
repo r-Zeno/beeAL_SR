@@ -36,12 +36,12 @@ odors= []
 
 od1_m = 119
 od1_sd_b = 8
-od1 = gauss_odor(n_glo=mod_paras["num"]["glom"], m = od1_m, sd_b= od1_sd_b, a_rate= 0.025, A= 1)
+od1 = gauss_odor(n_glo=mod_paras["num"]["glom"], m = od1_m, sd_b= od1_sd_b, a_rate= 0.1, A= 1)
 odors.append(np.copy(od1))
 
 od2_m = 121
 od2_sd_b = 8
-od2 = gauss_odor(n_glo=mod_paras["num"]["glom"], m = od2_m, sd_b= od2_sd_b, a_rate= 0.025, A= 1)
+od2 = gauss_odor(n_glo=mod_paras["num"]["glom"], m = od2_m, sd_b= od2_sd_b, a_rate= 0.1, A= 1)
 odors.append(np.copy(od2))
 
 odors = [od1, od2]

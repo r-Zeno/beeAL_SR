@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA, non_negative_factorization
 from scipy.spatial.distance import euclidean, cosine
 
-sim_dir_name = "sim_20260527_230853"
+sim_dir_name = "sim_20260824_172946"
 current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sim_path = os.path.join(current_dir, "simulations", sim_dir_name)
 
@@ -25,11 +25,6 @@ settle_time = 0
 start_idx = int(settle_time/dt)
 end_idx = int(baseline/dt)
 
-res_od1_clean = np.sqrt(res_od1_clean)
-res_od2_clean = np.sqrt(res_od2_clean)
-res_od1_noisy = np.sqrt(res_od1_noisy)
-res_od2_noisy = np.sqrt(res_od2_noisy)
-
 base_od1clean = np.mean(res_od1_clean[start_idx:end_idx,:], axis=0)
 base_od2clean = np.mean(res_od2_clean[start_idx:end_idx,:], axis=0)
 base_od1noisy = np.mean(res_od1_noisy[start_idx:end_idx,:], axis=0)
@@ -44,17 +39,18 @@ res_od2_clean = res_od2_clean[start_idx:-1,:]
 res_od1_noisy = res_od1_noisy[start_idx:-1,:]
 res_od2_noisy = res_od2_noisy[start_idx:-1,:]
 
-packaged = np.vstack([res_od1_clean, res_od2_clean, res_od1_noisy, res_od2_noisy])
+# data from which select the largest eigenvals. currently selecting only the det runs: but this ignores the rows that only contribute 
+packaged = np.vstack([res_od1_clean, res_od2_clean])
 
 pca = PCA(n_components=3)
 pca.fit(packaged)
 explained_var = np.sum(pca.explained_variance_ratio_) * 100
 print(f"{explained_var:.2f}% of total variance")
 
-traj_od1clean = pca.transform(res_od1_clean)
-traj_od2clean = pca.transform(res_od2_clean)
-traj_od1noisy = pca.transform(res_od1_noisy)
-traj_od2noisy = pca.transform(res_od2_noisy)
+traj_od1clean = res_od1_clean@pca.components_.T
+traj_od2clean = res_od2_clean@pca.components_.T
+traj_od1noisy = res_od1_noisy@pca.components_.T
+traj_od2noisy = res_od2_noisy@pca.components_.T
 
 dist_clean = [euclidean(traj_od1clean[t], traj_od2clean[t]) for t in range(len(traj_od1clean))]
 dist_noisy = [euclidean(traj_od1noisy[t], traj_od2noisy[t]) for t in range(len(traj_od1noisy))]

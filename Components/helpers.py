@@ -49,6 +49,38 @@ def gauss_odor(n_glo: int, m: float, sd_b: float, a_rate: float, A: float=1.0, c
 
     return odor
 
+def single_glom_odor(n_glo: int, m: float, a_rate: float, A: float=1.0, clip: float=0.0,
+                     m_a: float=0.25, sd_a: float=0.0, min_a: float=0.01, max_a: float=0.05,
+                     rand_a: bool=False, hom_a: bool=True) -> np.array:
+    """
+    sets binding rate only for the central glom. activation rate is still generated (but *0) to keep consistency with og gauss_odors
+    """
+    odor = np.zeros((n_glo, 2))
+
+    idx = int(round(m)) % n_glo
+    od = np.zeros(n_glo)
+    od[idx] = np.power(10, A)
+    od[od > 0] = od[od > 0] + clip
+    odor[:, 0] = od
+
+    if rand_a:
+        if hom_a:
+            a = 0.0
+            while a < min_a or a > max_a:
+                a = np.random.normal(m_a, sd_a)
+            odor[:, 1] = a
+        else:
+            for i in range(n_glo):
+                a = 0.0
+                while a < min_a or a > max_a:
+                    a = np.random.normal(m_a, sd_a)
+                odor[i, 1] = a
+    else:
+        odor[:, 1] = a_rate
+
+    return odor
+
+
 def set_odor_simple(ors, slot, odor, con, hill):
     """
     setting parameters of ors for the chosen odor (effectively "presenting"the odor to the ors).

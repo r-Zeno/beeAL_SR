@@ -13,3 +13,7 @@ remote_run_sim.sh
 *.so
 pybind11/
 simulations/
+*.dll
+*.exp
+*.lib
+*.pdb

@@ -1,13 +1,21 @@
 import os
+
+# needed for cuda on win
+if os.name == 'nt':
+    cuda_dir = os.environ.get("CUDA_PATH") or os.environ.get("CUDA_HOME") or os.environ.get("CUDA_PATH_V12_8")
+
+if os.name == 'nt' and cuda_dir:
+    os.add_dll_directory(os.path.join(cuda_dir, "bin"))
+    
+    if "CUDA_PATH" not in os.environ:
+        os.environ["CUDA_PATH"] = cuda_dir
+
 import numpy as np
 import pygenn
 from pygenn import create_var_ref, init_postsynaptic, init_sparse_connectivity
 from pygenn.genn_model import GeNNModel, create_weight_update_model, create_postsynaptic_model, create_sparse_connect_init_snippet, create_var_init_snippet, init_weight_update, create_current_source_model
 import time
 import math
-try:
-    import pygenn.cuda_backend
-except: print("WARNING: No CUDA, GPU will not be used!")
 try:
     import GPUtil
 except: print("GPUtil not installed, you will have no info on gpu status, sim will start anyway.")
@@ -21,12 +29,21 @@ class ModelBuilder:
     def __init__(self, paras:dict, exp_type, sim_time, target_pop, debugmode:bool, dt=0.1):
         
         nocuda = False
-        try:
-            os.environ['CUDA_PATH'] = '/usr/local/cuda'
-            pygenn.genn_model.backend_modules["CUDA"] = pygenn.cuda_backend # must manually set, otherwise on linux wont work
-        except: 
-            print("Warning: could not set CUDA backends")
-            nocuda = True
+        if os.name != 'nt':
+            try:
+                import pygenn.cuda_backend
+                os.environ['CUDA_PATH'] = '/usr/local/cuda'
+                pygenn.genn_model.backend_modules["CUDA"] = pygenn.cuda_backend # must manually set, otherwise on linux wont work
+            except: 
+                print("Warning: could not set CUDA backends")
+                nocuda = True
+        else:
+            try:
+                import pygenn.cuda_backend
+                pygenn.genn_model.backend_modules["CUDA"] = pygenn.cuda_backend
+                backend = "CUDA"
+            except:
+                print("Warning: could not set CUDA, check installation or env var paths")
 
         self.exp_type = exp_type # because different experiments need different model components
         self.target_pop = target_pop
@@ -39,9 +56,16 @@ class ModelBuilder:
         self.debugmode = debugmode
 
         if not nocuda:
-            self.model = GeNNModel("float", "beeAL", backend="CUDA") # for linux add backend="CUDA"
-        else: self.model = GeNNModel("float", "beeAL")
+            self.model = GeNNModel("float", "beeAL", backend="CUDA",
+                                   time_precision="double") # for linux add backend="CUDA"
+        else: self.model = GeNNModel("float", "beeAL", time_precision="double")
         self.model.dt = dt
+
+        # this sets noise seed for connectivity and noise
+        seed = self.paras.get("seed", None)
+        if seed is not None:
+            self.model.seed = int(seed)
+            if debugmode: print(f"model RNG seed set to {int(seed)}")
 
         self.n_glom = int(self.paras["num"]["glom"])
         self.n_orn = int(self.paras["num"]["orn"])
